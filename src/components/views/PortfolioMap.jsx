@@ -1,22 +1,20 @@
 // Framework 1: Balancing Portfolio Completeness and Sales Penetration
 // Axes: Penetration by Sales % (X) vs Portfolio Coverage % (Y)
 // Fixed quadrant thresholds: x=25%, y=25%
-// Quadrant backgrounds rendered via ReferenceArea; corner labels built in
 
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer, Cell, Label,
 } from 'recharts';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, getTier, getPenCovQuadrant } from '../../utils/formatters';
 
 const PEN_LINE = 25;
 const COV_LINE = 25;
 
-// Light blue for the two "needs work" quadrants, dark blue for the two "winning" quadrants
-const LIGHT_BLUE = '#bfdbfe'; // blue-200
-const DARK_BLUE  = '#1d4ed8'; // blue-700
+const LIGHT_BLUE = '#bfdbfe';
+const DARK_BLUE  = '#1d4ed8';
 
 const QUADRANT_LABELS = [
   { label: 'Assortment Leader',  color: '#0066CC', desc: 'High penetration & coverage — core portfolio strength' },
@@ -25,12 +23,7 @@ const QUADRANT_LABELS = [
   { label: 'Untapped Potential', color: '#6b7280', desc: 'Low penetration & coverage — build reach and awareness' },
 ];
 
-// ScatterChart margin prop
 const C_MARGIN = { top: 20, right: 50, bottom: 40, left: 20 };
-
-// These MUST match the width/height props set on <YAxis> and <XAxis> below.
-const YAXIS_W = 55;
-const XAXIS_H = 30;
 
 // Generate tick marks within [lo, hi] at a sensible step size
 function makeTicks(lo, hi) {
@@ -122,78 +115,26 @@ export default function PortfolioMap({ data }) {
     return c;
   }, [data]);
 
-  // ── Drag-to-zoom ──────────────────────────────────────────────────────────
-  // dragPx tracks the drag rectangle in PIXEL coords relative to containerRef.
-  // plotBoundsRef caches the CartesianGrid element's bounding box on mouseDown
-  // — gives exact plot-area bounds without any hardcoded margin/axis-width guesswork.
-  const containerRef  = useRef(null);
-  const plotBoundsRef = useRef(null);
-  const [dragPx, setDragPx] = useState(null);   // { x0, y0, x1, y1 } px
-  const [zoomed, setZoomed] = useState(null);    // { x:[lo,hi], y:[lo,hi] } data
+  // ── Axis range inputs for zoom ────────────────────────────────────────────
+  const [xMinIn, setXMinIn] = useState('');
+  const [xMaxIn, setXMaxIn] = useState('');
+  const [yMinIn, setYMinIn] = useState('');
+  const [yMaxIn, setYMaxIn] = useState('');
 
-  const activeDomain = zoomed ?? { x: [0, 100], y: [0, 100] };
+  const toNum = (s, fallback) => (s !== '' && !isNaN(Number(s)) ? Number(s) : fallback);
+  const isZoomed = xMinIn !== '' || xMaxIn !== '' || yMinIn !== '' || yMaxIn !== '';
+  const resetZoom = () => { setXMinIn(''); setXMaxIn(''); setYMinIn(''); setYMaxIn(''); };
+
+  // Default domain is [0, 100] for both axes (penetration and coverage are 0–100%)
+  const activeDomain = {
+    x: [toNum(xMinIn, 0), toNum(xMaxIn, 100)],
+    y: [toNum(yMinIn, 0), toNum(yMaxIn, 100)],
+  };
   const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
-
-  // Convert pixel coords (relative to containerRef) to data-space coords.
-  // plotBoundsRef is also containerRef-relative, so no coordinate mixing.
-  const pxToData = (px, py) => {
-    const plot = plotBoundsRef.current;
-    if (!plot) return null;
-    const [x0, x1] = activeDomain.x;
-    const [y0, y1] = activeDomain.y;
-    return {
-      x: x0 + ((px - plot.left) / plot.width)  * (x1 - x0),
-      y: y1 - ((py - plot.top)  / plot.height) * (y1 - y0),
-    };
-  };
-
-  const handleMouseDown = (e) => {
-    const el = containerRef.current;
-    if (!el) return;
-    const svgEl = el.querySelector('svg');
-    if (!svgEl) return;
-    const contRect = el.getBoundingClientRect();
-    const svgRect  = svgEl.getBoundingClientRect();
-    // Store plot bounds relative to containerRef (same system as dragPx)
-    plotBoundsRef.current = {
-      left:   svgRect.left - contRect.left + C_MARGIN.left + YAXIS_W,
-      top:    svgRect.top  - contRect.top  + C_MARGIN.top,
-      width:  svgRect.width  - C_MARGIN.left - YAXIS_W - C_MARGIN.right,
-      height: svgRect.height - C_MARGIN.top  - C_MARGIN.bottom - XAXIS_H,
-    };
-    e.preventDefault();
-    const x = e.clientX - contRect.left;
-    const y = e.clientY - contRect.top;
-    setDragPx({ x0: x, y0: y, x1: x, y1: y });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!dragPx) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setDragPx((prev) => prev ? { ...prev, x1: e.clientX - rect.left, y1: e.clientY - rect.top } : null);
-  };
-
-  const handleMouseUp = () => {
-    if (!dragPx) return;
-    const d0 = pxToData(dragPx.x0, dragPx.y0);
-    const d1 = pxToData(dragPx.x1, dragPx.y1);
-    if (d0 && d1) {
-      const xRange = Math.abs(d1.x - d0.x);
-      const yRange = Math.abs(d1.y - d0.y);
-      const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
-      // Only zoom if drag was large enough to be intentional (>3% of current range)
-      if (xRange > rx * 0.03 && yRange > ry * 0.03) {
-        setZoomed({
-          x: [Math.min(d0.x, d1.x), Math.max(d0.x, d1.x)],
-          y: [Math.min(d0.y, d1.y), Math.max(d0.y, d1.y)],
-        });
-      }
-    }
-    setDragPx(null);
-  };
   // ──────────────────────────────────────────────────────────────────────────
+
+  const inputCls = 'w-14 px-1.5 py-0.5 border border-gray-200 rounded text-gray-700 text-center focus:outline-none focus:ring-1 focus:ring-blue-400';
 
   return (
     <div className="space-y-6">
@@ -266,123 +207,114 @@ export default function PortfolioMap({ data }) {
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        {/* Zoom hint / reset */}
-        <div className="flex items-center mb-2 h-5">
-          {zoomed
-            ? <button onClick={() => setZoomed(null)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">↩ Reset zoom</button>
-            : <p className="text-xs text-gray-400 italic select-none">Drag on the chart to zoom in</p>
-          }
+
+        {/* Axis range inputs */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-gray-500">
+          <span className="font-medium text-gray-600">Axis range:</span>
+          <div className="flex items-center gap-1.5">
+            <span>X</span>
+            <input type="number" value={xMinIn} placeholder="0"
+              onChange={e => setXMinIn(e.target.value)} className={inputCls} />
+            <span>–</span>
+            <input type="number" value={xMaxIn} placeholder="100"
+              onChange={e => setXMaxIn(e.target.value)} className={inputCls} />
+            <span>%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>Y</span>
+            <input type="number" value={yMinIn} placeholder="0"
+              onChange={e => setYMinIn(e.target.value)} className={inputCls} />
+            <span>–</span>
+            <input type="number" value={yMaxIn} placeholder="100"
+              onChange={e => setYMaxIn(e.target.value)} className={inputCls} />
+            <span>%</span>
+          </div>
+          {isZoomed && (
+            <button onClick={resetZoom} className="text-blue-600 hover:text-blue-800 font-medium">
+              ↩ Reset
+            </button>
+          )}
         </div>
 
-        {/* This div captures mouse events for drag-to-zoom */}
-        <div
-          ref={containerRef}
-          className="relative"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={() => { if (dragPx) setDragPx(null); }}
-          style={{ cursor: dragPx ? 'crosshair' : 'default', userSelect: 'none' }}
-        >
-          {/* CSS drag-selection rectangle — positioned in pixel space */}
-          {dragPx && (
-            <div className="absolute pointer-events-none" style={{
-              left:   Math.min(dragPx.x0, dragPx.x1),
-              top:    Math.min(dragPx.y0, dragPx.y1),
-              width:  Math.abs(dragPx.x1 - dragPx.x0),
-              height: Math.abs(dragPx.y1 - dragPx.y0),
-              background: 'rgba(0,102,204,0.08)',
-              border: '1.5px solid rgba(0,102,204,0.5)',
-              borderRadius: 2,
-              zIndex: 20,
-            }} />
-          )}
-          <ResponsiveContainer width="100%" height={520}>
-            <ScatterChart margin={C_MARGIN}>
+        <ResponsiveContainer width="100%" height={520}>
+          <ScatterChart margin={C_MARGIN}>
 
-              {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
-              {/* Top-left: Reassessment (light blue) */}
-              <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
-                fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-                <Label value="Reassessment" position="insideTopLeft"
-                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-              </ReferenceArea>
-              {/* Top-right: Assortment Leader (dark blue) */}
-              <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
-                fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-                <Label value="Assortment Leader" position="insideTopRight"
-                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-              </ReferenceArea>
-              {/* Bottom-left: Untapped Potential (light blue) */}
-              <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
-                fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-                <Label value="Untapped Potential" position="insideBottomLeft"
-                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-              </ReferenceArea>
-              {/* Bottom-right: Selective Winner (dark blue) */}
-              <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
-                fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-                <Label value="Selective Winner" position="insideBottomRight"
-                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-              </ReferenceArea>
+            {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
+            <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+              <Label value="Reassessment" position="insideTopLeft"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+              <Label value="Assortment Leader" position="insideTopRight"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+              <Label value="Untapped Potential" position="insideBottomLeft"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+              <Label value="Selective Winner" position="insideBottomRight"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
 
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
-              <XAxis
-                type="number" dataKey="penetration" height={XAXIS_H}
-                domain={activeDomain.x} ticks={activeXTicks}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-              >
-                <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
-                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-              </XAxis>
-              <YAxis
-                type="number" dataKey="coverage"
-                domain={activeDomain.y} ticks={activeYTicks} width={YAXIS_W}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-              >
-                <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
-                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-              </YAxis>
+            <XAxis
+              type="number" dataKey="penetration" height={30}
+              domain={activeDomain.x} ticks={activeXTicks}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 12, fill: '#64748b' }}
+            >
+              <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+            </XAxis>
+            <YAxis
+              type="number" dataKey="coverage" width={55}
+              domain={activeDomain.y} ticks={activeYTicks}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 12, fill: '#64748b' }}
+            >
+              <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+            </YAxis>
 
-              <Tooltip content={dragPx ? null : <CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} />
 
-              {/* Dashed divider lines at the quadrant thresholds */}
-              <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
-              <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+            {/* Dashed divider lines at the quadrant thresholds */}
+            <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+            <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
 
-              <Scatter
-                data={chartData}
-                shape={({ cx, cy, payload }) => {
-                  if (cx == null || cy == null) return null;
-                  const t = getTier(payload.tier);
-                  const r = getRadius(payload.mbGpDollars);
-                  // Truncate long names so labels stay compact on the chart
-                  const name = (payload.category || '').length > 13
-                    ? payload.category.slice(0, 12) + '…'
-                    : (payload.category || '');
-                  return (
-                    <g>
-                      <circle cx={cx} cy={cy} r={r}
-                        fill={t.color} fillOpacity={0.72}
-                        stroke={t.color} strokeWidth={1.5}
-                      />
-                      {/* White outline behind label text improves legibility over colored backgrounds */}
-                      <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
-                        stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
-                        {name}
-                      </text>
-                    </g>
-                  );
-                }}
-              >
-                {chartData.map((_, i) => <Cell key={i} />)}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div>{/* end drag-capture div */}
+            <Scatter
+              data={chartData}
+              shape={({ cx, cy, payload }) => {
+                if (cx == null || cy == null) return null;
+                const t = getTier(payload.tier);
+                const r = getRadius(payload.mbGpDollars);
+                const name = (payload.category || '').length > 13
+                  ? payload.category.slice(0, 12) + '…'
+                  : (payload.category || '');
+                return (
+                  <g>
+                    <circle cx={cx} cy={cy} r={r}
+                      fill={t.color} fillOpacity={0.72}
+                      stroke={t.color} strokeWidth={1.5}
+                    />
+                    <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
+                      stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
+                      {name}
+                    </text>
+                  </g>
+                );
+              }}
+            >
+              {chartData.map((_, i) => <Cell key={i} />)}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">

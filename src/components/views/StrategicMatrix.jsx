@@ -6,7 +6,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer, Cell, Label,
 } from 'recharts';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, getTier, getGrowthQuadrant } from '../../utils/formatters';
 
@@ -22,13 +22,7 @@ const LIGHT_BLUE = '#bfdbfe';
 const DARK_BLUE  = '#1d4ed8';
 const LIGHT_GRAY = '#e5e7eb';
 
-// ScatterChart margin prop (also used for corner-label overlay padding)
 const C_MARGIN = { top: 20, right: 50, bottom: 40, left: 20 };
-
-// These MUST match the width/height props set on <YAxis> and <XAxis> below.
-// They let us compute the exact plot area from the SVG element's bounding rect.
-const YAXIS_W = 60;
-const XAXIS_H = 30;
 
 // Generate tick marks at a sensible interval within [lo, hi]
 function makeTicks(lo, hi) {
@@ -138,80 +132,25 @@ export default function StrategicMatrix({ data }) {
     return c;
   }, [chartData]);
 
-  // ── Drag-to-zoom ──────────────────────────────────────────────────────────
-  // dragPx stores the drag rectangle in PIXEL coords relative to containerRef.
-  // plotBoundsRef caches the CartesianGrid element's bounding box, captured on
-  // mouseDown — this gives us the exact plot-area origin/size without any
-  // hardcoded margin/axis-width guesswork.
-  const containerRef  = useRef(null);
-  const plotBoundsRef = useRef(null);
-  const [dragPx, setDragPx] = useState(null);   // { x0, y0, x1, y1 } px
-  const [zoomed, setZoomed] = useState(null);    // { x:[lo,hi], y:[lo,hi] } data
+  // ── Axis range inputs for zoom ────────────────────────────────────────────
+  const [xMinIn, setXMinIn] = useState('');
+  const [xMaxIn, setXMaxIn] = useState('');
+  const [yMinIn, setYMinIn] = useState('');
+  const [yMaxIn, setYMaxIn] = useState('');
 
-  const activeDomain = zoomed ?? { x: xDomain, y: yDomain };
+  const toNum = (s, fallback) => (s !== '' && !isNaN(Number(s)) ? Number(s) : fallback);
+  const isZoomed = xMinIn !== '' || xMaxIn !== '' || yMinIn !== '' || yMaxIn !== '';
+  const resetZoom = () => { setXMinIn(''); setXMaxIn(''); setYMinIn(''); setYMaxIn(''); };
+
+  const activeDomain = {
+    x: [toNum(xMinIn, xDomain[0]), toNum(xMaxIn, xDomain[1])],
+    y: [toNum(yMinIn, yDomain[0]), toNum(yMaxIn, yDomain[1])],
+  };
   const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
-
-  // Convert pixel coords (relative to containerRef) to data-space coords.
-  // plotBoundsRef is also in containerRef-relative coords, so no coordinate mixing.
-  const pxToData = (px, py) => {
-    const plot = plotBoundsRef.current;
-    if (!plot) return null;
-    const [x0, x1] = activeDomain.x;
-    const [y0, y1] = activeDomain.y;
-    return {
-      x: x0 + ((px - plot.left) / plot.width)  * (x1 - x0),
-      y: y1 - ((py - plot.top)  / plot.height) * (y1 - y0),
-    };
-  };
-
-  const handleMouseDown = (e) => {
-    const el = containerRef.current;
-    if (!el) return;
-    // Only need the SVG element — plot area is fully determined by SVG bounds
-    // + our explicit margin/axis-width/axis-height constants.
-    const svgEl = el.querySelector('svg');
-    if (!svgEl) return;
-    const contRect = el.getBoundingClientRect();
-    const svgRect  = svgEl.getBoundingClientRect();
-    // Store plot bounds relative to containerRef so they share a coord system with dragPx
-    plotBoundsRef.current = {
-      left:   svgRect.left - contRect.left + C_MARGIN.left + YAXIS_W,
-      top:    svgRect.top  - contRect.top  + C_MARGIN.top,
-      width:  svgRect.width  - C_MARGIN.left - YAXIS_W - C_MARGIN.right,
-      height: svgRect.height - C_MARGIN.top  - C_MARGIN.bottom - XAXIS_H,
-    };
-    e.preventDefault();
-    const x = e.clientX - contRect.left;
-    const y = e.clientY - contRect.top;
-    setDragPx({ x0: x, y0: y, x1: x, y1: y });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!dragPx) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setDragPx((prev) => prev ? { ...prev, x1: e.clientX - rect.left, y1: e.clientY - rect.top } : null);
-  };
-
-  const handleMouseUp = () => {
-    if (!dragPx) return;
-    const d0 = pxToData(dragPx.x0, dragPx.y0);
-    const d1 = pxToData(dragPx.x1, dragPx.y1);
-    if (d0 && d1) {
-      const xRange = Math.abs(d1.x - d0.x);
-      const yRange = Math.abs(d1.y - d0.y);
-      const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
-      if (xRange > rx * 0.03 && yRange > ry * 0.03) {
-        setZoomed({
-          x: [Math.min(d0.x, d1.x), Math.max(d0.x, d1.x)],
-          y: [Math.min(d0.y, d1.y), Math.max(d0.y, d1.y)],
-        });
-      }
-    }
-    setDragPx(null);
-  };
   // ──────────────────────────────────────────────────────────────────────────
+
+  const inputCls = 'w-14 px-1.5 py-0.5 border border-gray-200 rounded text-gray-700 text-center focus:outline-none focus:ring-1 focus:ring-blue-400';
 
   return (
     <div className="space-y-6">
@@ -270,38 +209,37 @@ export default function StrategicMatrix({ data }) {
 
       {/* Chart card */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        {/* Zoom hint / reset */}
-        <div className="flex items-center mb-2 h-5">
-          {zoomed
-            ? <button onClick={() => setZoomed(null)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">↩ Reset zoom</button>
-            : <p className="text-xs text-gray-400 italic select-none">Drag on the chart to zoom in</p>
-          }
+
+        {/* Axis range inputs */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-gray-500">
+          <span className="font-medium text-gray-600">Axis range:</span>
+          <div className="flex items-center gap-1.5">
+            <span>X</span>
+            <input type="number" value={xMinIn} placeholder={String(xDomain[0])}
+              onChange={e => setXMinIn(e.target.value)} className={inputCls} />
+            <span>–</span>
+            <input type="number" value={xMaxIn} placeholder={String(xDomain[1])}
+              onChange={e => setXMaxIn(e.target.value)} className={inputCls} />
+            <span>%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>Y</span>
+            <input type="number" value={yMinIn} placeholder={String(yDomain[0])}
+              onChange={e => setYMinIn(e.target.value)} className={inputCls} />
+            <span>–</span>
+            <input type="number" value={yMaxIn} placeholder={String(yDomain[1])}
+              onChange={e => setYMaxIn(e.target.value)} className={inputCls} />
+            <span>%</span>
+          </div>
+          {isZoomed && (
+            <button onClick={resetZoom} className="text-blue-600 hover:text-blue-800 font-medium">
+              ↩ Reset
+            </button>
+          )}
         </div>
 
-        {/* Mouse-capture + corner-label container */}
-        <div
-          ref={containerRef}
-          className="relative"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={() => { if (dragPx) setDragPx(null); }}
-          style={{ cursor: dragPx ? 'crosshair' : 'default', userSelect: 'none' }}
-        >
-          {/* CSS drag-selection rectangle — positioned in pixel space, no data-coord math needed */}
-          {dragPx && (
-            <div className="absolute pointer-events-none" style={{
-              left:   Math.min(dragPx.x0, dragPx.x1),
-              top:    Math.min(dragPx.y0, dragPx.y1),
-              width:  Math.abs(dragPx.x1 - dragPx.x0),
-              height: Math.abs(dragPx.y1 - dragPx.y0),
-              background: 'rgba(0,102,204,0.08)',
-              border: '1.5px solid rgba(0,102,204,0.5)',
-              borderRadius: 2,
-              zIndex: 20,
-            }} />
-          )}
-
+        {/* Chart + corner labels */}
+        <div className="relative">
           <ResponsiveContainer width="100%" height={520}>
             <ScatterChart margin={C_MARGIN}>
               {/* Quadrant shaded backgrounds */}
@@ -312,20 +250,20 @@ export default function StrategicMatrix({ data }) {
 
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
-              <XAxis type="number" dataKey="_xPlot" height={XAXIS_H}
+              <XAxis type="number" dataKey="_xPlot" height={30}
                 domain={activeDomain.x} ticks={activeXTicks}
                 tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MB Outpace NB Growth" position="insideBottom" offset={-25}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </XAxis>
-              <YAxis type="number" dataKey="_yPlot" width={YAXIS_W}
+              <YAxis type="number" dataKey="_yPlot" width={60}
                 domain={activeDomain.y} ticks={activeYTicks}
                 tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </YAxis>
 
-              <Tooltip content={dragPx ? null : <CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} />
 
               <ReferenceLine x={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
               <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
