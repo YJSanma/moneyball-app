@@ -60,7 +60,7 @@ function normalizeNumber(val) {
 
 // Percentage fields stored as decimals (e.g. 0.936) need to be multiplied by 100.
 // We detect this by checking if the value is between -1 and 1 exclusive.
-const PERCENT_FIELDS = new Set(['mbGpMargin', 'mmsGpMargin', 'penetration', 'coverage', 'marketGrowth']);
+const PERCENT_FIELDS = new Set(['mbGpMargin', 'mmsGpMargin', 'penetration', 'coverage', 'marketGrowth', 'mbOutpaceMms', 'mmsOutpaceMarket']);
 function normalizePercent(val) {
   const n = normalizeNumber(val);
   if (n == null) return null;

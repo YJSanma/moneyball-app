@@ -1,13 +1,14 @@
-// Strategic Matrix — BCG-style scatter chart
-// Axes: Market Growth % (Y) vs Relative Market Share (X)
+// Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
+// Axes: MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y)
 // Bubble size: MB GP$   |   Color: Tier
+// Reference lines at x=0 and y=0 divide the four strategic quadrants
 
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ResponsiveContainer, Cell, Label,
 } from 'recharts';
 import { useMemo, useState } from 'react';
-import { formatCurrency, formatPercent, getTier, TIER_CONFIG } from '../../utils/formatters';
+import { formatCurrency, formatPercent, getTier } from '../../utils/formatters';
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
@@ -24,13 +25,11 @@ function CustomTooltip({ active, payload }) {
         {t.label} — {t.desc}
       </span>
       <div className="space-y-1 text-gray-600 text-xs">
-        <Row label="MB GP$"         value={formatCurrency(d.mbGpDollars, true)} />
-        <Row label="MB GP%"         value={formatPercent(d.mbGpMargin)} />
-        <Row label="MMS GP$"        value={formatCurrency(d.mmsGpDollars, true)} />
-        <Row label="Market Growth"  value={formatPercent(d.marketGrowth)} />
-        <Row label="Rel. Mkt Share" value={d.marketShare != null ? `${d.marketShare.toFixed(2)}x` : '—'} />
-        <Row label="Penetration"    value={formatPercent(d.penetration, 0)} />
-        <Row label="Coverage"       value={formatPercent(d.coverage, 0)} />
+        <Row label="MB Outpace NB Growth"  value={formatPercent(d.mbOutpaceMms, 1)} />
+        <Row label="MMS Outpace Market %"  value={formatPercent(d.mmsOutpaceMarket, 1)} />
+        <Row label="MB GP$"               value={formatCurrency(d.mbGpDollars, true)} />
+        <Row label="MB GP%"               value={formatPercent(d.mbGpMargin)} />
+        <Row label="MMS GP$"              value={formatCurrency(d.mmsGpDollars, true)} />
       </div>
     </div>
   );
@@ -56,15 +55,12 @@ export default function StrategicMatrix({ data }) {
     });
   };
 
-  const { chartData, avgGrowth, avgShare, maxGP } = useMemo(() => {
+  const { chartData, maxGP } = useMemo(() => {
     const valid = data.filter(
-      (d) => d.marketGrowth != null && d.marketShare != null && activeTiers.has(d.tier),
+      (d) => d.mbOutpaceMms != null && d.mmsOutpaceMarket != null && activeTiers.has(d.tier),
     );
-    const allValid = data.filter((d) => d.marketGrowth != null && d.marketShare != null);
-    const avgG = allValid.length ? allValid.reduce((s, d) => s + d.marketGrowth, 0) / allValid.length : 5;
-    const avgS = allValid.length ? allValid.reduce((s, d) => s + d.marketShare,  0) / allValid.length : 1;
     const maxG = Math.max(...data.map((d) => d.mbGpDollars || 0), 1);
-    return { chartData: valid, avgGrowth: avgG, avgShare: avgS, maxGP: maxG };
+    return { chartData: valid, maxGP: maxG };
   }, [data, activeTiers]);
 
   // Scale bubble radius by MB GP$
@@ -83,9 +79,11 @@ export default function StrategicMatrix({ data }) {
     <div className="space-y-6">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900">Strategic Matrix</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
+        </h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          Market growth vs relative market share — bubble size = MB GP$, color = tier
+          MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y) — bubble size = MB GP$, color = tier
         </p>
       </div>
 
@@ -126,46 +124,60 @@ export default function StrategicMatrix({ data }) {
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <ResponsiveContainer width="100%" height={500}>
-          <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis
-              type="number" dataKey="marketShare" domain={['auto', 'auto']}
-              tickFormatter={(v) => `${v.toFixed(1)}x`}
-              tick={{ fontSize: 12, fill: '#64748b' }}
-            >
-              <Label value="Relative Market Share" position="insideBottom" offset={-25}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-            </XAxis>
-            <YAxis
-              type="number" dataKey="marketGrowth"
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 12, fill: '#64748b' }}
-            >
-              <Label value="Market Growth Rate (%)" angle={-90} position="insideLeft" offset={10}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-            </YAxis>
-            <Tooltip content={<CustomTooltip />} />
-            {/* Quadrant dividers */}
-            <ReferenceLine x={avgShare}  stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
-            <ReferenceLine y={avgGrowth} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
-            <Scatter
-              data={chartData}
-              shape={({ cx, cy, payload }) => {
-                const t = getTier(payload.tier);
-                const r = getRadius(payload.mbGpDollars);
-                return (
-                  <circle cx={cx} cy={cy} r={r}
-                    fill={t.color} fillOpacity={0.72}
-                    stroke={t.color} strokeWidth={1.5}
-                  />
-                );
-              }}
-            >
-              {chartData.map((_, i) => <Cell key={i} />)}
-            </Scatter>
-          </ScatterChart>
-        </ResponsiveContainer>
+        {/* Chart with corner quadrant labels overlaid */}
+        <div className="relative">
+          <ResponsiveContainer width="100%" height={500}>
+            <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis
+                type="number" dataKey="mbOutpaceMms" domain={['auto', 'auto']}
+                tickFormatter={(v) => `${v.toFixed(1)}%`}
+                tick={{ fontSize: 12, fill: '#64748b' }}
+              >
+                <Label value="MB Outpace NB Growth" position="insideBottom" offset={-25}
+                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+              </XAxis>
+              <YAxis
+                type="number" dataKey="mmsOutpaceMarket"
+                tickFormatter={(v) => `${v.toFixed(1)}%`}
+                tick={{ fontSize: 12, fill: '#64748b' }}
+              >
+                <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
+                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+              </YAxis>
+              <Tooltip content={<CustomTooltip />} />
+              {/* Quadrant dividers at zero */}
+              <ReferenceLine x={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+              <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+              <Scatter
+                data={chartData}
+                shape={({ cx, cy, payload }) => {
+                  const t = getTier(payload.tier);
+                  const r = getRadius(payload.mbGpDollars);
+                  return (
+                    <circle cx={cx} cy={cy} r={r}
+                      fill={t.color} fillOpacity={0.72}
+                      stroke={t.color} strokeWidth={1.5}
+                    />
+                  );
+                }}
+              >
+                {chartData.map((_, i) => <Cell key={i} />)}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+
+          {/* Bold corner labels for each quadrant */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ paddingTop: 20, paddingBottom: 42, paddingLeft: 68, paddingRight: 42 }}>
+            <div className="relative w-full h-full text-xs font-bold text-slate-400">
+              <span className="absolute top-1 left-1">Opportunity Gap</span>
+              <span className="absolute top-1 right-1 text-right">Strategy Star</span>
+              <span className="absolute bottom-1 left-1">Evaluation Candidates</span>
+              <span className="absolute bottom-1 right-1 text-right">McKesson Brands Champions</span>
+            </div>
+          </div>
+        </div>
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
@@ -189,10 +201,6 @@ export default function StrategicMatrix({ data }) {
           </div>
         </div>
       </div>
-
-      <p className="text-xs text-gray-400 text-center">
-        Dashed lines = portfolio averages (growth {formatPercent(avgGrowth)}, share {avgShare.toFixed(2)}x)
-      </p>
     </div>
   );
 }

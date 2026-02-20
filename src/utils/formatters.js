@@ -58,10 +58,10 @@ export function getQuadrant(marketGrowth, marketShare, avgGrowth = 5, avgShare =
 export function getPenCovQuadrant(penetration, coverage) {
   const highPen = penetration >= 60;
   const highCov = coverage   >= 65;
-  if  (highPen &&  highCov) return { label: 'Core Strength',            color: '#0066CC' };
-  if  (highPen && !highCov) return { label: 'Activation Opportunity',   color: '#d97706' };
-  if (!highPen &&  highCov) return { label: 'Distribution Opportunity', color: '#7c3aed' };
-  return                           { label: 'Investment Needed',        color: '#dc2626' };
+  if  (highPen &&  highCov) return { label: 'Assortment Leader',   color: '#0066CC' };
+  if  (highPen && !highCov) return { label: 'Selective Winner',    color: '#059669' };
+  if (!highPen &&  highCov) return { label: 'Reassessment',        color: '#7c3aed' };
+  return                           { label: 'Untapped Potential',  color: '#d97706' };
 }
 
 // Chart color palette (fallback when not using tier colors)
