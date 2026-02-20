@@ -84,7 +84,7 @@ export default function PortfolioMap({ data }) {
     );
     const maxG = Math.max(...data.map((d) => d.mbGpDollars || 0), 1);
     return { chartData: valid, maxGP: maxG };
-  }, [data, activeTiers]);
+  }, [data, activeTiers, search]);
 
   const getRadius = (mbGp) => {
     const min = 7, max = 28;

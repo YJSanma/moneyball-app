@@ -72,15 +72,53 @@ export default function StrategicMatrix({ data }) {
     });
   };
 
-  const { chartData, maxGP } = useMemo(() => {
+  const { chartData, maxGP, xDomain, yDomain, xTicks, yTicks, clippedCats } = useMemo(() => {
     const q = search.toLowerCase();
-    const valid = data.filter(
+    const all = data.filter(
       (d) => d.mbOutpaceMms != null && d.mmsOutpaceMarket != null && activeTiers.has(d.tier) &&
         (q === '' || (d.category || '').toLowerCase().includes(q)),
     );
     const maxG = Math.max(...data.map((d) => d.mbGpDollars || 0), 1);
-    return { chartData: valid, maxGP: maxG };
-  }, [data, activeTiers]);
+
+    if (all.length === 0) {
+      return { chartData: [], maxGP: maxG, xDomain: [-10, 10], yDomain: [-10, 10], xTicks: [-10, -5, 0, 5, 10], yTicks: [-10, -5, 0, 5, 10], clippedCats: [] };
+    }
+
+    // Compute axis range from the bulk of the data (5th–95th percentile) to
+    // avoid a handful of outliers squishing everything into the center.
+    const xVals = all.map((d) => d.mbOutpaceMms).sort((a, b) => a - b);
+    const yVals = all.map((d) => d.mmsOutpaceMarket).sort((a, b) => a - b);
+    const pct   = (arr, p) => arr[Math.max(0, Math.min(arr.length - 1, Math.floor(arr.length * p)))];
+
+    // Round outward to nearest 5, add a little breathing room, always include 0
+    const xMin = Math.min(Math.floor((pct(xVals, 0.05) - 2) / 5) * 5, -5);
+    const xMax = Math.max(Math.ceil((pct(xVals, 0.95) + 2) / 5) * 5, 5);
+    const yMin = Math.min(Math.floor((pct(yVals, 0.05) - 2) / 5) * 5, -5);
+    const yMax = Math.max(Math.ceil((pct(yVals, 0.95) + 2) / 5) * 5, 5);
+
+    // Clamp any outlier to the axis boundary so it appears on the edge rather than disappearing
+    const clipped = [];
+    const chartItems = all.map((d) => {
+      const xOut = d.mbOutpaceMms < xMin || d.mbOutpaceMms > xMax;
+      const yOut = d.mmsOutpaceMarket < yMin || d.mmsOutpaceMarket > yMax;
+      if (xOut || yOut) clipped.push(d.category);
+      return {
+        ...d,
+        _xPlot: Math.max(xMin, Math.min(xMax, d.mbOutpaceMms)),
+        _yPlot: Math.max(yMin, Math.min(yMax, d.mmsOutpaceMarket)),
+      };
+    });
+
+    // Generate ticks every 5 within the computed domain
+    const makeTicks = (lo, hi) => { const t = []; for (let v = lo; v <= hi; v += 5) t.push(v); return t; };
+
+    return {
+      chartData: chartItems, maxGP: maxG,
+      xDomain: [xMin, xMax], yDomain: [yMin, yMax],
+      xTicks: makeTicks(xMin, xMax), yTicks: makeTicks(yMin, yMax),
+      clippedCats: clipped,
+    };
+  }, [data, activeTiers, search]);
 
   const getRadius = (mbGp) => {
     const min = 7, max = 28;
@@ -187,8 +225,8 @@ export default function StrategicMatrix({ data }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
             <XAxis
-              type="number" dataKey="mbOutpaceMms"
-              domain={[-20, 20]} ticks={[-20, -10, 0, 10, 20]}
+              type="number" dataKey="_xPlot"
+              domain={xDomain} ticks={xTicks}
               tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
             >
@@ -196,8 +234,8 @@ export default function StrategicMatrix({ data }) {
                 style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
             </XAxis>
             <YAxis
-              type="number" dataKey="mmsOutpaceMarket"
-              domain={[-22, 12]} ticks={[-20, -10, 0, 10]}
+              type="number" dataKey="_yPlot"
+              domain={yDomain} ticks={yTicks}
               tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
             >
@@ -253,12 +291,12 @@ export default function StrategicMatrix({ data }) {
         </div>
         </div>{/* end relative wrapper */}
 
-        {/* Note about clipped outliers */}
-        {chartData.some((d) => Math.abs(d.mbOutpaceMms) > 20) && (
+        {/* Note about clamped outliers — shown at the axis edge, marked here */}
+        {clippedCats.length > 0 && (
           <p className="text-xs text-gray-400 mt-2 italic">
-            * X-axis capped at ±20% for readability.{' '}
-            {chartData.filter((d) => Math.abs(d.mbOutpaceMms) > 20).map((d) => d.category).join(', ')}{' '}
-            ({chartData.filter((d) => d.mbOutpaceMms > 20).length > 0 ? '+' : ''}{chartData.find((d) => Math.abs(d.mbOutpaceMms) > 20)?.mbOutpaceMms?.toFixed(1)}%) not shown.
+            * Axis range auto-fitted to bulk of data.{' '}
+            {clippedCats.join(', ')}{' '}
+            {clippedCats.length === 1 ? 'is' : 'are'} clamped to the axis boundary.
           </p>
         )}
 
