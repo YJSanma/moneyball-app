@@ -6,6 +6,7 @@ import {
   ResponsiveContainer, Cell, LabelList, Legend,
 } from 'recharts';
 import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, formatNumber, getTier, TIER_CONFIG } from '../../utils/formatters';
 
 function DollarTooltip({ active, payload }) {
@@ -55,6 +56,7 @@ const shorten = (name) => {
 export default function GPRanking({ data }) {
   const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4]));
   const [sortBy, setSortBy]           = useState('mbGpDollars');
+  const [search, setSearch]           = useState('');
 
   const toggleTier = (tier) => {
     setActiveTiers((prev) => {
@@ -64,10 +66,12 @@ export default function GPRanking({ data }) {
     });
   };
 
-  const filtered = useMemo(
-    () => data.filter((d) => activeTiers.has(d.tier)),
-    [data, activeTiers],
-  );
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return data.filter(
+      (d) => activeTiers.has(d.tier) && (q === '' || (d.category || '').toLowerCase().includes(q)),
+    );
+  }, [data, activeTiers, search]);
 
   // Sorted for the ranked table (respects active sort)
   const sorted = useMemo(
@@ -115,13 +119,24 @@ export default function GPRanking({ data }) {
 
   return (
     <div className="space-y-6">
-      {/* Header + sort */}
+      {/* Header + search + sort */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">GP Ranking</h2>
           <p className="text-sm text-gray-500 mt-0.5">Gross profit analysis across McKesson Brands categories</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Search box */}
+          <div className="relative">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search categories…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+            />
+          </div>
           <label className="text-sm text-gray-500">Rank by:</label>
           <select
             value={sortBy}
