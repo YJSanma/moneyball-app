@@ -20,8 +20,8 @@ const VIEWS = [
 ];
 
 export default function App() {
-  const [data,           setData]           = useState(null);
-  const [dataSource,     setDataSource]     = useState(null);
+  const [data,           setData]           = useState(SAMPLE_DATA);
+  const [dataSource,     setDataSource]     = useState('Sample Data — 57 L2 Categories');
   const [activeView,     setActiveView]     = useState('portfolio');
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
