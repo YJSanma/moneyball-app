@@ -1,7 +1,6 @@
 // Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
 // Axes: MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y)
 // Quadrant thresholds: x=0%, y=0%
-// Quadrant backgrounds rendered via ReferenceArea; corner labels built in
 
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
@@ -18,20 +17,15 @@ const QUADRANT_LABELS = [
   { label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6', desc: 'Both metrics lagging — review and reassess' },
 ];
 
-// Large bound values so ReferenceArea fills each quadrant regardless of auto domain
 const BIG = 999;
+const LIGHT_BLUE = '#bfdbfe';
+const DARK_BLUE  = '#1d4ed8';
+const LIGHT_GRAY = '#e5e7eb';
 
-// Quadrant fill colors
-const LIGHT_BLUE = '#bfdbfe'; // blue-200 — Opportunity Gap & McKesson Brands Champions
-const DARK_BLUE  = '#1d4ed8'; // blue-700 — Strategy Star
-const LIGHT_GRAY = '#e5e7eb'; // gray-200 — Evaluation Candidates
+// ScatterChart margin prop (also used for corner-label overlay padding)
+const C_MARGIN = { top: 20, right: 50, bottom: 40, left: 20 };
 
-// Chart layout constants — must match ScatterChart margin + explicit YAxis width
-const YAXIS_W   = 55;
-const C_MARGIN  = { top: 20, right: 50, bottom: 40, left: 20 };
-const PLOT_LEFT = C_MARGIN.left + YAXIS_W; // pixel x where the data plot area starts
-
-// Generate tick marks within [lo, hi] at a sensible step size
+// Generate tick marks at a sensible interval within [lo, hi]
 function makeTicks(lo, hi) {
   const range = hi - lo;
   const step  = range > 40 ? 25 : range > 16 ? 10 : range > 6 ? 5 : range > 2 ? 2 : 1;
@@ -48,10 +42,8 @@ function CustomTooltip({ active, payload }) {
   return (
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm max-w-[220px]">
       <p className="font-semibold text-gray-900 mb-1">{d.category}</p>
-      <span
-        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2"
-        style={{ backgroundColor: t.bg, color: t.color, border: `1px solid ${t.border}` }}
-      >
+      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2"
+        style={{ backgroundColor: t.bg, color: t.color, border: `1px solid ${t.border}` }}>
         {t.label} — {t.desc}
       </span>
       <div className="space-y-1 text-gray-600 text-xs">
@@ -68,8 +60,7 @@ function CustomTooltip({ active, payload }) {
 function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-4">
-      <span>{label}</span>
-      <span className="font-medium text-gray-900">{value}</span>
+      <span>{label}</span><span className="font-medium text-gray-900">{value}</span>
     </div>
   );
 }
@@ -98,19 +89,15 @@ export default function StrategicMatrix({ data }) {
       return { chartData: [], maxGP: maxG, xDomain: [-10, 10], yDomain: [-10, 10], clippedCats: [] };
     }
 
-    // Compute axis range from the bulk of the data (5th–95th percentile) to
-    // avoid a handful of outliers squishing everything into the center.
     const xVals = all.map((d) => d.mbOutpaceMms).sort((a, b) => a - b);
     const yVals = all.map((d) => d.mmsOutpaceMarket).sort((a, b) => a - b);
     const pct   = (arr, p) => arr[Math.max(0, Math.min(arr.length - 1, Math.floor(arr.length * p)))];
 
-    // Round outward to nearest 5, add a little breathing room, always include 0
     const xMin = Math.min(Math.floor((pct(xVals, 0.05) - 2) / 5) * 5, -5);
     const xMax = Math.max(Math.ceil((pct(xVals, 0.95) + 2) / 5) * 5, 5);
     const yMin = Math.min(Math.floor((pct(yVals, 0.05) - 2) / 5) * 5, -5);
     const yMax = Math.max(Math.ceil((pct(yVals, 0.95) + 2) / 5) * 5, 5);
 
-    // Clamp any outlier to the axis boundary so it appears on the edge rather than disappearing
     const clipped = [];
     const chartItems = all.map((d) => {
       const xOut = d.mbOutpaceMms < xMin || d.mbOutpaceMms > xMax;
@@ -123,11 +110,7 @@ export default function StrategicMatrix({ data }) {
       };
     });
 
-    return {
-      chartData: chartItems, maxGP: maxG,
-      xDomain: [xMin, xMax], yDomain: [yMin, yMax],
-      clippedCats: clipped,
-    };
+    return { chartData: chartItems, maxGP: maxG, xDomain: [xMin, xMax], yDomain: [yMin, yMax], clippedCats: clipped };
   }, [data, activeTiers, search]);
 
   const getRadius = (mbGp) => {
@@ -150,59 +133,76 @@ export default function StrategicMatrix({ data }) {
     return c;
   }, [chartData]);
 
-  // Drag-to-zoom state
-  const containerRef = useRef(null);
-  const [dragStart, setDragStart] = useState(null); // { x, y } in data space
-  const [dragEnd,   setDragEnd]   = useState(null);
-  const [zoomed,    setZoomed]    = useState(null); // { x: [lo, hi], y: [lo, hi] }
+  // ── Drag-to-zoom ──────────────────────────────────────────────────────────
+  // dragPx stores the drag rectangle in PIXEL coords relative to containerRef.
+  // plotBoundsRef caches the CartesianGrid element's bounding box, captured on
+  // mouseDown — this gives us the exact plot-area origin/size without any
+  // hardcoded margin/axis-width guesswork.
+  const containerRef  = useRef(null);
+  const plotBoundsRef = useRef(null);
+  const [dragPx, setDragPx] = useState(null);   // { x0, y0, x1, y1 } px
+  const [zoomed, setZoomed] = useState(null);    // { x:[lo,hi], y:[lo,hi] } data
 
   const activeDomain = zoomed ?? { x: xDomain, y: yDomain };
   const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
 
-  // Convert a client coordinate to a data-space coordinate using chart layout constants
-  const clientToData = (clientX, clientY) => {
-    const el = containerRef.current;
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
-    const plotW = rect.width  - PLOT_LEFT - C_MARGIN.right;
-    const plotH = rect.height - C_MARGIN.top - C_MARGIN.bottom;
+  // Convert pixel coords (relative to containerRef) to data-space coords.
+  // Uses the cached CartesianGrid bounding box for accuracy.
+  const pxToData = (px, py) => {
+    const grid = plotBoundsRef.current;
+    const cont = containerRef.current?.getBoundingClientRect();
+    if (!grid || !cont) return null;
     const [x0, x1] = activeDomain.x;
     const [y0, y1] = activeDomain.y;
     return {
-      x: x0 + ((clientX - rect.left - PLOT_LEFT) / plotW) * (x1 - x0),
-      y: y1 - ((clientY - rect.top  - C_MARGIN.top) / plotH) * (y1 - y0),
+      x: x0 + ((cont.left + px - grid.left) / grid.width)  * (x1 - x0),
+      y: y1 - ((cont.top  + py - grid.top)  / grid.height) * (y1 - y0),
     };
   };
 
   const handleMouseDown = (e) => {
-    const pt = clientToData(e.clientX, e.clientY);
-    if (!pt) return;
+    const el = containerRef.current;
+    if (!el) return;
+    // Capture the exact plot area bounds right now
+    const gridEl = el.querySelector('.recharts-cartesian-grid');
+    if (!gridEl) return;
+    plotBoundsRef.current = gridEl.getBoundingClientRect();
     e.preventDefault();
-    setDragStart(pt);
-    setDragEnd(pt);
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setDragPx({ x0: x, y0: y, x1: x, y1: y });
   };
+
   const handleMouseMove = (e) => {
-    if (!dragStart) return;
-    const pt = clientToData(e.clientX, e.clientY);
-    if (pt) setDragEnd(pt);
+    if (!dragPx) return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setDragPx((prev) => prev ? { ...prev, x1: e.clientX - rect.left, y1: e.clientY - rect.top } : null);
   };
+
   const handleMouseUp = () => {
-    if (!dragStart || !dragEnd) return;
-    const x0 = Math.min(dragStart.x, dragEnd.x);
-    const x1 = Math.max(dragStart.x, dragEnd.x);
-    const y0 = Math.min(dragStart.y, dragEnd.y);
-    const y1 = Math.max(dragStart.y, dragEnd.y);
-    const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
-    // Only zoom if the drag was large enough to be intentional (>3% of current range)
-    if (x1 - x0 > rx * 0.03 && y1 - y0 > ry * 0.03) setZoomed({ x: [x0, x1], y: [y0, y1] });
-    setDragStart(null);
-    setDragEnd(null);
+    if (!dragPx) return;
+    const d0 = pxToData(dragPx.x0, dragPx.y0);
+    const d1 = pxToData(dragPx.x1, dragPx.y1);
+    if (d0 && d1) {
+      const xRange = Math.abs(d1.x - d0.x);
+      const yRange = Math.abs(d1.y - d0.y);
+      const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
+      if (xRange > rx * 0.03 && yRange > ry * 0.03) {
+        setZoomed({
+          x: [Math.min(d0.x, d1.x), Math.max(d0.x, d1.x)],
+          y: [Math.min(d0.y, d1.y), Math.max(d0.y, d1.y)],
+        });
+      }
+    }
+    setDragPx(null);
   };
+  // ──────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
-      {/* Title */}
       <div>
         <h2 className="text-xl font-bold text-gray-900">
           Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
@@ -218,9 +218,7 @@ export default function StrategicMatrix({ data }) {
           <div key={q.label} className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-semibold" style={{ color: q.color }}>{q.label}</span>
-              <span className="text-lg font-bold" style={{ color: q.color }}>
-                {quadrantCounts[q.label] || 0}
-              </span>
+              <span className="text-lg font-bold" style={{ color: q.color }}>{quadrantCounts[q.label] || 0}</span>
             </div>
             <p className="text-xs text-gray-500 leading-tight">{q.desc}</p>
           </div>
@@ -233,18 +231,12 @@ export default function StrategicMatrix({ data }) {
           const t      = getTier(tier);
           const active = activeTiers.has(tier);
           return (
-            <button
-              key={tier}
-              onClick={() => toggleTier(tier)}
+            <button key={tier} onClick={() => toggleTier(tier)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
-              style={
-                active
-                  ? { backgroundColor: t.bg, color: t.color, borderColor: t.border }
-                  : { backgroundColor: '#f9fafb', color: '#9ca3af', borderColor: '#e5e7eb' }
-              }
-            >
-              <span className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: active ? t.color : '#d1d5db' }} />
+              style={active
+                ? { backgroundColor: t.bg, color: t.color, borderColor: t.border }
+                : { backgroundColor: '#f9fafb', color: '#9ca3af', borderColor: '#e5e7eb' }}>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: active ? t.color : '#d1d5db' }} />
               {t.label}
               <span className="text-xs px-1.5 py-0.5 rounded-full"
                 style={active ? { backgroundColor: t.color + '20' } : { backgroundColor: '#f3f4f6' }}>
@@ -253,23 +245,18 @@ export default function StrategicMatrix({ data }) {
             </button>
           );
         })}
-        {/* Search box */}
         <div className="relative ml-auto">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search categories…"
-            value={search}
+          <input type="text" placeholder="Search categories…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
-          />
+            className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48" />
         </div>
         <span className="text-xs text-gray-400 self-center">
           {chartData.length} of {data.length} categories shown
         </span>
       </div>
 
-      {/* Chart */}
+      {/* Chart card */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
         {/* Zoom hint / reset */}
         <div className="flex items-center mb-2 h-5">
@@ -279,94 +266,83 @@ export default function StrategicMatrix({ data }) {
           }
         </div>
 
-        {/* This div captures mouse events for drag-to-zoom and also holds the corner-label overlay */}
+        {/* Mouse-capture + corner-label container */}
         <div
           ref={containerRef}
           className="relative"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={() => { setDragStart(null); setDragEnd(null); }}
-          style={{ cursor: dragStart ? 'crosshair' : 'default', userSelect: 'none' }}
+          onMouseLeave={() => { if (dragPx) setDragPx(null); }}
+          style={{ cursor: dragPx ? 'crosshair' : 'default', userSelect: 'none' }}
         >
+          {/* CSS drag-selection rectangle — positioned in pixel space, no data-coord math needed */}
+          {dragPx && (
+            <div className="absolute pointer-events-none" style={{
+              left:   Math.min(dragPx.x0, dragPx.x1),
+              top:    Math.min(dragPx.y0, dragPx.y1),
+              width:  Math.abs(dragPx.x1 - dragPx.x0),
+              height: Math.abs(dragPx.y1 - dragPx.y0),
+              background: 'rgba(0,102,204,0.08)',
+              border: '1.5px solid rgba(0,102,204,0.5)',
+              borderRadius: 2,
+              zIndex: 20,
+            }} />
+          )}
+
           <ResponsiveContainer width="100%" height={520}>
             <ScatterChart margin={C_MARGIN}>
-
-              {/* Quadrant shaded backgrounds (no Label children — auto domain breaks coordinate-based labels) */}
+              {/* Quadrant shaded backgrounds */}
               <ReferenceArea x1={-BIG} x2={0} y1={0}    y2={BIG}  fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
               <ReferenceArea x1={0}    x2={BIG} y1={0}   y2={BIG}  fill={DARK_BLUE}  fillOpacity={0.1} stroke="none" />
               <ReferenceArea x1={-BIG} x2={0} y1={-BIG}  y2={0}    fill={LIGHT_GRAY} fillOpacity={0.5} stroke="none" />
               <ReferenceArea x1={0}    x2={BIG} y1={-BIG} y2={0}   fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
 
-              {/* Drag-to-zoom selection rectangle */}
-              {dragStart && dragEnd && (
-                <ReferenceArea
-                  x1={Math.min(dragStart.x, dragEnd.x)} x2={Math.max(dragStart.x, dragEnd.x)}
-                  y1={Math.min(dragStart.y, dragEnd.y)} y2={Math.max(dragStart.y, dragEnd.y)}
-                  stroke="#0066CC" strokeOpacity={0.6} fill="#0066CC" fillOpacity={0.1}
-                />
-              )}
-
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
-              <XAxis
-                type="number" dataKey="_xPlot"
+              <XAxis type="number" dataKey="_xPlot"
                 domain={activeDomain.x} ticks={activeXTicks}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-              >
+                tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MB Outpace NB Growth" position="insideBottom" offset={-25}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </XAxis>
-              <YAxis
-                type="number" dataKey="_yPlot"
-                domain={activeDomain.y} ticks={activeYTicks} width={YAXIS_W}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-              >
+              <YAxis type="number" dataKey="_yPlot"
+                domain={activeDomain.y} ticks={activeYTicks}
+                tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </YAxis>
 
-              <Tooltip content={dragStart ? null : <CustomTooltip />} />
+              <Tooltip content={dragPx ? null : <CustomTooltip />} />
 
-              {/* Dashed divider lines at x=0 and y=0 */}
               <ReferenceLine x={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
               <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
 
-              <Scatter
-                data={chartData}
+              <Scatter data={chartData}
                 shape={({ cx, cy, payload }) => {
                   if (cx == null || cy == null) return null;
                   const t = getTier(payload.tier);
                   const r = getRadius(payload.mbGpDollars);
-                  // Truncate long names so labels stay compact on the chart
                   const name = (payload.category || '').length > 13
-                    ? payload.category.slice(0, 12) + '…'
-                    : (payload.category || '');
+                    ? payload.category.slice(0, 12) + '…' : (payload.category || '');
                   return (
                     <g>
-                      <circle cx={cx} cy={cy} r={r}
-                        fill={t.color} fillOpacity={0.72}
-                        stroke={t.color} strokeWidth={1.5}
-                      />
-                      {/* White outline behind label text improves legibility over colored backgrounds */}
+                      <circle cx={cx} cy={cy} r={r} fill={t.color} fillOpacity={0.72} stroke={t.color} strokeWidth={1.5} />
                       <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
                         stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
                         {name}
                       </text>
                     </g>
                   );
-                }}
-              >
+                }}>
                 {chartData.map((_, i) => <Cell key={i} />)}
               </Scatter>
             </ScatterChart>
           </ResponsiveContainer>
 
-          {/* Corner quadrant labels — CSS-positioned so they work with any axis domain */}
+          {/* Corner quadrant labels — CSS-positioned */}
           <div className="absolute inset-0 pointer-events-none"
-            style={{ paddingTop: C_MARGIN.top, paddingBottom: C_MARGIN.bottom + 2, paddingLeft: PLOT_LEFT, paddingRight: C_MARGIN.right + 2 }}>
+            style={{ paddingTop: 20, paddingBottom: 42, paddingLeft: 70, paddingRight: 52 }}>
             <div className="relative w-full h-full text-xs font-bold">
               <span className="absolute top-1 left-1 text-blue-900">Opportunity Gap</span>
               <span className="absolute top-1 right-1 text-right text-blue-900">Strategy Star</span>
@@ -374,13 +350,12 @@ export default function StrategicMatrix({ data }) {
               <span className="absolute bottom-1 right-1 text-right text-blue-900">McKesson Brands Champions</span>
             </div>
           </div>
-        </div>{/* end chart + drag capture div */}
+        </div>
 
-        {/* Note about clamped outliers — shown at the axis edge, marked here */}
+        {/* Clamped outlier note */}
         {clippedCats.length > 0 && (
           <p className="text-xs text-gray-400 mt-2 italic">
-            * Axis range auto-fitted to bulk of data.{' '}
-            {clippedCats.join(', ')}{' '}
+            * Axis range auto-fitted to bulk of data. {clippedCats.join(', ')}{' '}
             {clippedCats.length === 1 ? 'is' : 'are'} clamped to the axis boundary.
           </p>
         )}
@@ -396,8 +371,7 @@ export default function StrategicMatrix({ data }) {
               return (
                 <span key={d.id}
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs"
-                  style={{ backgroundColor: t.bg, color: t.color }}
-                >
+                  style={{ backgroundColor: t.bg, color: t.color }}>
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: t.color }} />
                   {d.category}
                 </span>

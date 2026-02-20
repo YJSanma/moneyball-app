@@ -25,10 +25,8 @@ const QUADRANT_LABELS = [
   { label: 'Untapped Potential', color: '#6b7280', desc: 'Low penetration & coverage — build reach and awareness' },
 ];
 
-// Chart layout constants — must match ScatterChart margin + explicit YAxis width
-const YAXIS_W   = 55;
-const C_MARGIN  = { top: 20, right: 50, bottom: 40, left: 20 };
-const PLOT_LEFT = C_MARGIN.left + YAXIS_W; // pixel x where the data plot area starts
+// ScatterChart margin prop
+const C_MARGIN = { top: 20, right: 50, bottom: 40, left: 20 };
 
 // Generate tick marks within [lo, hi] at a sensible step size
 function makeTicks(lo, hi) {
@@ -120,55 +118,73 @@ export default function PortfolioMap({ data }) {
     return c;
   }, [data]);
 
-  // Drag-to-zoom state
-  const containerRef = useRef(null);
-  const [dragStart, setDragStart] = useState(null); // { x, y } in data space
-  const [dragEnd,   setDragEnd]   = useState(null);
-  const [zoomed,    setZoomed]    = useState(null); // { x: [lo, hi], y: [lo, hi] }
+  // ── Drag-to-zoom ──────────────────────────────────────────────────────────
+  // dragPx tracks the drag rectangle in PIXEL coords relative to containerRef.
+  // plotBoundsRef caches the CartesianGrid element's bounding box on mouseDown
+  // — gives exact plot-area bounds without any hardcoded margin/axis-width guesswork.
+  const containerRef  = useRef(null);
+  const plotBoundsRef = useRef(null);
+  const [dragPx, setDragPx] = useState(null);   // { x0, y0, x1, y1 } px
+  const [zoomed, setZoomed] = useState(null);    // { x:[lo,hi], y:[lo,hi] } data
 
   const activeDomain = zoomed ?? { x: [0, 100], y: [0, 100] };
   const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
 
-  // Convert a client coordinate to a data-space coordinate using chart layout constants
-  const clientToData = (clientX, clientY) => {
-    const el = containerRef.current;
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
-    const plotW = rect.width  - PLOT_LEFT - C_MARGIN.right;
-    const plotH = rect.height - C_MARGIN.top - C_MARGIN.bottom;
+  // Convert pixel coords (relative to containerRef) to data-space coords.
+  // Uses the cached CartesianGrid bounding box for accuracy.
+  const pxToData = (px, py) => {
+    const grid = plotBoundsRef.current;
+    const cont = containerRef.current?.getBoundingClientRect();
+    if (!grid || !cont) return null;
     const [x0, x1] = activeDomain.x;
     const [y0, y1] = activeDomain.y;
     return {
-      x: Math.max(x0, Math.min(x1, x0 + ((clientX - rect.left - PLOT_LEFT) / plotW) * (x1 - x0))),
-      y: Math.max(y0, Math.min(y1, y1 - ((clientY - rect.top  - C_MARGIN.top) / plotH) * (y1 - y0))),
+      x: x0 + ((cont.left + px - grid.left) / grid.width)  * (x1 - x0),
+      y: y1 - ((cont.top  + py - grid.top)  / grid.height) * (y1 - y0),
     };
   };
 
   const handleMouseDown = (e) => {
-    const pt = clientToData(e.clientX, e.clientY);
-    if (!pt) return;
+    const el = containerRef.current;
+    if (!el) return;
+    // Capture the exact plot area bounds right now
+    const gridEl = el.querySelector('.recharts-cartesian-grid');
+    if (!gridEl) return;
+    plotBoundsRef.current = gridEl.getBoundingClientRect();
     e.preventDefault();
-    setDragStart(pt);
-    setDragEnd(pt);
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setDragPx({ x0: x, y0: y, x1: x, y1: y });
   };
+
   const handleMouseMove = (e) => {
-    if (!dragStart) return;
-    const pt = clientToData(e.clientX, e.clientY);
-    if (pt) setDragEnd(pt);
+    if (!dragPx) return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setDragPx((prev) => prev ? { ...prev, x1: e.clientX - rect.left, y1: e.clientY - rect.top } : null);
   };
+
   const handleMouseUp = () => {
-    if (!dragStart || !dragEnd) return;
-    const x0 = Math.min(dragStart.x, dragEnd.x);
-    const x1 = Math.max(dragStart.x, dragEnd.x);
-    const y0 = Math.min(dragStart.y, dragEnd.y);
-    const y1 = Math.max(dragStart.y, dragEnd.y);
-    const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
-    // Only zoom if the drag was large enough to be intentional (>3% of current range)
-    if (x1 - x0 > rx * 0.03 && y1 - y0 > ry * 0.03) setZoomed({ x: [x0, x1], y: [y0, y1] });
-    setDragStart(null);
-    setDragEnd(null);
+    if (!dragPx) return;
+    const d0 = pxToData(dragPx.x0, dragPx.y0);
+    const d1 = pxToData(dragPx.x1, dragPx.y1);
+    if (d0 && d1) {
+      const xRange = Math.abs(d1.x - d0.x);
+      const yRange = Math.abs(d1.y - d0.y);
+      const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
+      // Only zoom if drag was large enough to be intentional (>3% of current range)
+      if (xRange > rx * 0.03 && yRange > ry * 0.03) {
+        setZoomed({
+          x: [Math.min(d0.x, d1.x), Math.max(d0.x, d1.x)],
+          y: [Math.min(d0.y, d1.y), Math.max(d0.y, d1.y)],
+        });
+      }
+    }
+    setDragPx(null);
   };
+  // ──────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -252,12 +268,26 @@ export default function PortfolioMap({ data }) {
         {/* This div captures mouse events for drag-to-zoom */}
         <div
           ref={containerRef}
+          className="relative"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={() => { setDragStart(null); setDragEnd(null); }}
-          style={{ cursor: dragStart ? 'crosshair' : 'default', userSelect: 'none' }}
+          onMouseLeave={() => { if (dragPx) setDragPx(null); }}
+          style={{ cursor: dragPx ? 'crosshair' : 'default', userSelect: 'none' }}
         >
+          {/* CSS drag-selection rectangle — positioned in pixel space */}
+          {dragPx && (
+            <div className="absolute pointer-events-none" style={{
+              left:   Math.min(dragPx.x0, dragPx.x1),
+              top:    Math.min(dragPx.y0, dragPx.y1),
+              width:  Math.abs(dragPx.x1 - dragPx.x0),
+              height: Math.abs(dragPx.y1 - dragPx.y0),
+              background: 'rgba(0,102,204,0.08)',
+              border: '1.5px solid rgba(0,102,204,0.5)',
+              borderRadius: 2,
+              zIndex: 20,
+            }} />
+          )}
           <ResponsiveContainer width="100%" height={520}>
             <ScatterChart margin={C_MARGIN}>
 
@@ -287,15 +317,6 @@ export default function PortfolioMap({ data }) {
                   style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
               </ReferenceArea>
 
-              {/* Drag-to-zoom selection rectangle */}
-              {dragStart && dragEnd && (
-                <ReferenceArea
-                  x1={Math.min(dragStart.x, dragEnd.x)} x2={Math.max(dragStart.x, dragEnd.x)}
-                  y1={Math.min(dragStart.y, dragEnd.y)} y2={Math.max(dragStart.y, dragEnd.y)}
-                  stroke="#0066CC" strokeOpacity={0.6} fill="#0066CC" fillOpacity={0.1}
-                />
-              )}
-
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
               <XAxis
@@ -309,7 +330,7 @@ export default function PortfolioMap({ data }) {
               </XAxis>
               <YAxis
                 type="number" dataKey="coverage"
-                domain={activeDomain.y} ticks={activeYTicks} width={YAXIS_W}
+                domain={activeDomain.y} ticks={activeYTicks} width={55}
                 tickFormatter={(v) => `${v}%`}
                 tick={{ fontSize: 12, fill: '#64748b' }}
               >
@@ -317,7 +338,7 @@ export default function PortfolioMap({ data }) {
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </YAxis>
 
-              <Tooltip content={dragStart ? null : <CustomTooltip />} />
+              <Tooltip content={dragPx ? null : <CustomTooltip />} />
 
               {/* Dashed divider lines at the quadrant thresholds */}
               <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
