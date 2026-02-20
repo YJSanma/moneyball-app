@@ -148,10 +148,22 @@ export default function PortfolioMap({ data }) {
   const handleMouseDown = (e) => {
     const el = containerRef.current;
     if (!el) return;
-    // Capture the exact plot area bounds right now
-    const gridEl = el.querySelector('.recharts-cartesian-grid');
-    if (!gridEl) return;
-    plotBoundsRef.current = gridEl.getBoundingClientRect();
+    // Use the Y-axis and X-axis elements to derive exact plot area bounds.
+    // CartesianGrid only spans rendered tick lines (not domain edges), so
+    // its getBoundingClientRect() gives an inaccurate plot area.
+    const svgEl   = el.querySelector('svg');
+    const yAxisEl = el.querySelector('.recharts-yAxis');
+    const xAxisEl = el.querySelector('.recharts-xAxis');
+    if (!svgEl || !yAxisEl || !xAxisEl) return;
+    const svgRect   = svgEl.getBoundingClientRect();
+    const yAxisRect = yAxisEl.getBoundingClientRect();
+    const xAxisRect = xAxisEl.getBoundingClientRect();
+    plotBoundsRef.current = {
+      left:   yAxisRect.right,
+      top:    svgRect.top + C_MARGIN.top,
+      width:  svgRect.right - C_MARGIN.right - yAxisRect.right,
+      height: xAxisRect.top - svgRect.top - C_MARGIN.top,
+    };
     e.preventDefault();
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
