@@ -66,6 +66,74 @@ function Section({ title, children }) {
   );
 }
 
+// A mini 2×2 quadrant diagram with the active quadrant highlighted.
+// topLeft/topRight/bottomLeft/bottomRight each: { label, color, bg }
+function FrameworkDiagram({ title, xLabel, yLabel, topLeft, topRight, bottomLeft, bottomRight, activeLabel }) {
+  const cells = [topLeft, topRight, bottomLeft, bottomRight];
+
+  return (
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 8 }}>{title}</p>
+      <div style={{ display: 'flex', gap: 6 }}>
+
+        {/* Y-axis label */}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 30, paddingBottom: 20 }}>
+          <span style={{ fontSize: 9, color: '#9ca3af', textAlign: 'right', lineHeight: 1.2 }}>High<br />{yLabel}</span>
+          <span style={{ fontSize: 9, color: '#9ca3af', textAlign: 'right', lineHeight: 1.2 }}>Low<br />{yLabel}</span>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          {/* 2×2 grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+            {cells.map((cell) => {
+              const isActive = cell.label === activeLabel;
+              return (
+                <div
+                  key={cell.label}
+                  style={{
+                    backgroundColor: isActive ? cell.bg : '#f9fafb',
+                    border: `${isActive ? 2 : 1}px solid ${isActive ? cell.color : '#e5e7eb'}`,
+                    borderRadius: 6,
+                    padding: '7px 9px',
+                    minHeight: 56,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span style={{
+                    fontSize: 10,
+                    lineHeight: 1.3,
+                    fontWeight: isActive ? 700 : 400,
+                    color: isActive ? cell.color : '#d1d5db',
+                  }}>
+                    {cell.label}
+                  </span>
+                  {/* "You are here" dot */}
+                  {isActive && (
+                    <span style={{
+                      display: 'block', width: 7, height: 7,
+                      borderRadius: '50%', backgroundColor: cell.color,
+                      alignSelf: 'flex-end', marginTop: 4,
+                    }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* X-axis label */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <span style={{ fontSize: 9, color: '#9ca3af' }}>Low</span>
+            <span style={{ fontSize: 9, color: '#9ca3af' }}>{xLabel}</span>
+            <span style={{ fontSize: 9, color: '#9ca3af' }}>High</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Horizontal progress bar used in the relative performance section
 function RelativeBar({ label, score, color }) {
   return (
@@ -403,10 +471,39 @@ export default function CategoryDetail({ category, allData, onBack }) {
 
           {/* Strategic Quadrants */}
           <Section title="Strategic Classification">
-            <div className="space-y-4">
-              <QuadrantBadge quadrant={f1q} label="Framework 1 — Penetration × Coverage" />
-              <QuadrantBadge quadrant={f2q} label="Framework 2 — MB outpace MMS × MMS outpace Market" />
+            <div className="space-y-6">
+
+              {/* Framework 1 — Penetration × Coverage */}
+              <FrameworkDiagram
+                title="Framework 1 — Penetration × Coverage"
+                yLabel="Pen"
+                xLabel="Coverage"
+                activeLabel={f1q?.label}
+                topLeft={{    label: 'Selective Winner',   color: '#1d4ed8', bg: '#dbeafe' }}
+                topRight={{   label: 'Assortment Leader',  color: '#0066CC', bg: '#dbeafe' }}
+                bottomLeft={{  label: 'Untapped Potential', color: '#6b7280', bg: '#f3f4f6' }}
+                bottomRight={{ label: 'Reassessment',       color: '#3b82f6', bg: '#eff6ff' }}
+              />
+
+              <div className="border-t border-gray-100" />
+
+              {/* Framework 2 — MB outpace MMS × MMS outpace Market */}
+              <FrameworkDiagram
+                title="Framework 2 — Growth Dynamics"
+                yLabel="MB vs MMS"
+                xLabel="MMS vs Market"
+                activeLabel={f2q?.label}
+                topLeft={{    label: 'McKesson Brands Champions', color: '#3b82f6', bg: '#eff6ff' }}
+                topRight={{   label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' }}
+                bottomLeft={{  label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6' }}
+                bottomRight={{ label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff' }}
+              />
+
+              <div className="border-t border-gray-100" />
+
+              {/* BCG text badge */}
               <QuadrantBadge quadrant={bcgq} label="BCG — Market Growth × Market Share" />
+
             </div>
           </Section>
 
