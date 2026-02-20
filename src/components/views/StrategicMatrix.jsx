@@ -127,34 +127,16 @@ export default function StrategicMatrix({ data }) {
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        {/* Relative wrapper so the corner-label overlay can be absolutely positioned */}
+        <div className="relative">
         <ResponsiveContainer width="100%" height={520}>
           <ScatterChart margin={{ top: 20, right: 50, bottom: 40, left: 20 }}>
 
-            {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
-            {/* Top-left: Opportunity Gap (light blue) */}
-            <ReferenceArea x1={-BIG} x2={0} y1={0} y2={BIG}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="Opportunity Gap" position="insideTopLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
-            {/* Top-right: Strategy Star (dark blue) */}
-            <ReferenceArea x1={0} x2={BIG} y1={0} y2={BIG}
-              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-              <Label value="Strategy Star" position="insideTopRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
-            {/* Bottom-left: Evaluation Candidates (light gray) */}
-            <ReferenceArea x1={-BIG} x2={0} y1={-BIG} y2={0}
-              fill={LIGHT_GRAY} fillOpacity={0.5} stroke="none">
-              <Label value="Evaluation Candidates" position="insideBottomLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#374151' }} />
-            </ReferenceArea>
-            {/* Bottom-right: McKesson Brands Champions (light blue) */}
-            <ReferenceArea x1={0} x2={BIG} y1={-BIG} y2={0}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="McKesson Brands Champions" position="insideBottomRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+            {/* Quadrant shaded backgrounds (no Label children — auto domain breaks coordinate-based labels) */}
+            <ReferenceArea x1={-BIG} x2={0} y1={0}    y2={BIG}  fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
+            <ReferenceArea x1={0}    x2={BIG} y1={0}   y2={BIG}  fill={DARK_BLUE}  fillOpacity={0.1} stroke="none" />
+            <ReferenceArea x1={-BIG} x2={0} y1={-BIG}  y2={0}    fill={LIGHT_GRAY} fillOpacity={0.5} stroke="none" />
+            <ReferenceArea x1={0}    x2={BIG} y1={-BIG} y2={0}   fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
 
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
@@ -210,6 +192,18 @@ export default function StrategicMatrix({ data }) {
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
+
+        {/* Corner quadrant labels — CSS-positioned so they work with auto axis domains */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ paddingTop: 20, paddingBottom: 42, paddingLeft: 70, paddingRight: 52 }}>
+          <div className="relative w-full h-full text-xs font-bold">
+            <span className="absolute top-1 left-1 text-blue-900">Opportunity Gap</span>
+            <span className="absolute top-1 right-1 text-right text-blue-900">Strategy Star</span>
+            <span className="absolute bottom-1 left-1 text-gray-600">Evaluation Candidates</span>
+            <span className="absolute bottom-1 right-1 text-right text-blue-900">McKesson Brands Champions</span>
+          </div>
+        </div>
+        </div>{/* end relative wrapper */}
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
