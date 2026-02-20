@@ -11,15 +11,23 @@ import { WEIGHT_COLUMNS, DEFAULT_WEIGHTS } from '../../utils/scoring';
 
 // ── Static columns used when there is no raw Excel data (sample data) ─────────
 const STATIC_COLUMNS = [
-  { key: 'category',     label: 'Category',    align: 'left',  format: (v) => v || '—' },
-  { key: '__tier__',     label: 'Tier',        align: 'left',  special: 'tier' },
-  { key: 'mbGpDollars',  label: 'MB GP$',      align: 'right', format: (v) => formatCurrency(v) },
-  { key: 'mbGpMargin',   label: 'MB GP%',      align: 'right', special: 'margin' },
-  { key: 'mmsGpDollars', label: 'MMS GP$',     align: 'right', format: (v) => formatCurrency(v) },
-  { key: 'penetration',  label: 'Penetration', align: 'right', format: (v) => formatPercent(v, 0) },
-  { key: 'coverage',     label: 'Coverage',    align: 'right', format: (v) => formatPercent(v, 0) },
-  { key: 'marketGrowth', label: 'Mkt Growth',  align: 'right', format: (v) => formatPercent(v) },
-  { key: 'marketShare',  label: 'Rel. Share',  align: 'right', format: (v) => v != null ? `${v.toFixed(2)}x` : '—' },
+  { key: 'category',         label: 'Category',          align: 'left',  format: (v) => v || '—' },
+  { key: '__tier__',         label: 'Tier',              align: 'left',  special: 'tier' },
+  { key: 'mbGpDollars',      label: 'MB GP$',            align: 'right', format: (v) => formatCurrency(v) },
+  { key: 'mbGpMargin',       label: 'MB GP%',            align: 'right', special: 'margin' },
+  { key: 'mmsGpDollars',     label: 'MMS GP$',           align: 'right', format: (v) => formatCurrency(v) },
+  { key: 'mmsGpMargin',      label: 'MMS GP%',           align: 'right', format: (v) => formatPercent(v) },
+  { key: 'penetration',      label: 'Penetration',       align: 'right', format: (v) => formatPercent(v, 0) },
+  { key: 'coverage',         label: 'Coverage',          align: 'right', format: (v) => formatPercent(v, 0) },
+  { key: 'totalMarket',      label: 'Total Market $m',   align: 'right', format: (v) => v != null ? `$${v}M` : '—' },
+  { key: 'marketGrowth',     label: 'Mkt Growth',        align: 'right', format: (v) => formatPercent(v) },
+  { key: 'marketShare',      label: 'MMS Mkt Share',     align: 'right', format: (v) => formatPercent(v) },
+  { key: 'mmsGrowth',        label: 'MMS Growth',        align: 'right', format: (v) => formatPercent(v) },
+  { key: 'revenue',          label: 'MB Sales$',         align: 'right', format: (v) => formatCurrency(v) },
+  { key: 'mbGrowth',         label: 'MB Growth',         align: 'right', format: (v) => formatPercent(v) },
+  { key: 'mbOutpaceMms',     label: 'MB outpace MMS',    align: 'right', format: (v) => formatPercent(v) },
+  { key: 'mmsOutpaceMarket', label: 'MMS outpace Mkt',   align: 'right', format: (v) => formatPercent(v) },
+  { key: 'mbVsMmsGp',        label: 'MB GP > MMS GP',    align: 'right', format: (v) => formatPercent(v) },
   {
     key: '__f1q__', label: 'F1 Quadrant', align: 'left', special: 'f1q',
     compute: (row) => row.penetration != null && row.coverage != null

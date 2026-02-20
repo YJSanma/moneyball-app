@@ -5,19 +5,19 @@
 export const WEIGHT_COLUMNS = [
   { id: 'penetration',      label: 'Penetration',           defaultWeight: 10, field: 'penetration',      aliases: ['penetration'] },
   { id: 'coverage',         label: 'Coverage',              defaultWeight: 0,  field: 'coverage',         aliases: ['coverage'] },
-  { id: 'totalMarket',      label: 'Total Market $m',       defaultWeight: 10, field: null,               aliases: ['total market'] },
+  { id: 'totalMarket',      label: 'Total Market $m',       defaultWeight: 10, field: 'totalMarket',      aliases: ['total market'] },
   { id: 'marketGrowth',     label: 'Total Market Growth %', defaultWeight: 10, field: 'marketGrowth',     aliases: ['market growth', 'total market growth'] },
   { id: 'marketShare',      label: 'MMS Market Share %',    defaultWeight: 10, field: 'marketShare',      aliases: ['mms market share', 'market share', 'mms share'] },
   { id: 'mmsGpDollars',     label: 'MMS GP $m',             defaultWeight: 0,  field: 'mmsGpDollars',     aliases: ['mms gp'] },
   { id: 'mmsGpMargin',      label: 'MMS GP %',              defaultWeight: 0,  field: 'mmsGpMargin',      aliases: ['mms gp %', 'mms gp margin'] },
-  { id: 'mmsGrowth',        label: 'MMS Growth',            defaultWeight: 10, field: null,               aliases: ['mms growth'] },
+  { id: 'mmsGrowth',        label: 'MMS Growth',            defaultWeight: 10, field: 'mmsGrowth',        aliases: ['mms growth'] },
   { id: 'revenue',          label: 'MB Sales $m',           defaultWeight: 5,  field: 'revenue',          aliases: ['mb sales'] },
   { id: 'mbGpDollars',      label: 'MB GP $m',              defaultWeight: 10, field: 'mbGpDollars',      aliases: ['mb gp $m', 'mb gp dollars'] },
   { id: 'mbGpMargin',       label: 'MB GP %',               defaultWeight: 10, field: 'mbGpMargin',       aliases: ['mb gp %', 'mb gp margin', 'mb margin'] },
-  { id: 'mbGrowth',         label: 'MB Growth',             defaultWeight: 10, field: null,               aliases: ['mb growth'] },
+  { id: 'mbGrowth',         label: 'MB Growth',             defaultWeight: 10, field: 'mbGrowth',         aliases: ['mb growth'] },
   { id: 'mbOutpaceMms',     label: 'MB outpace MMS %',      defaultWeight: 5,  field: 'mbOutpaceMms',     aliases: ['mb outpace mms', 'mb outpace nb'] },
   { id: 'mmsOutpaceMarket', label: 'MMS outpace Market %',  defaultWeight: 5,  field: 'mmsOutpaceMarket', aliases: ['mms outpace market', 'mms outpace'] },
-  { id: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      defaultWeight: 10, field: null,               aliases: ['mb gp higher than mms gp', 'mb vs mms gp', 'mb gp higher', 'mb higher than mms'] },
+  { id: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      defaultWeight: 10, field: 'mbVsMmsGp',        aliases: ['mb gp higher than mms gp', 'mb vs mms gp', 'mb gp higher', 'mb higher than mms'] },
 ];
 
 export const DEFAULT_WEIGHTS = Object.fromEntries(WEIGHT_COLUMNS.map(c => [c.id, c.defaultWeight]));

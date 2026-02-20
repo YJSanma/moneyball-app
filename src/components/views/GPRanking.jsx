@@ -34,11 +34,15 @@ function buildColOptions(data) {
     { key: 'mmsGpMargin',      label: 'MMS GP%',               isRaw: false },
     { key: 'penetration',      label: 'Penetration %',         isRaw: false },
     { key: 'coverage',         label: 'Coverage %',            isRaw: false },
+    { key: 'totalMarket',      label: 'Total Market $m',       isRaw: false },
     { key: 'marketGrowth',     label: 'Total Market Growth %', isRaw: false },
-    { key: 'marketShare',      label: 'MMS Market Share',      isRaw: false },
+    { key: 'marketShare',      label: 'MMS Market Share %',    isRaw: false },
+    { key: 'mmsGrowth',        label: 'MMS Growth %',          isRaw: false },
     { key: 'revenue',          label: 'MB Sales $',            isRaw: false },
+    { key: 'mbGrowth',         label: 'MB Growth %',           isRaw: false },
     { key: 'mbOutpaceMms',     label: 'MB outpace MMS %',      isRaw: false },
     { key: 'mmsOutpaceMarket', label: 'MMS outpace Market %',  isRaw: false },
+    { key: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      isRaw: false },
   ];
 }
 
@@ -65,7 +69,7 @@ function fmtColValue(val, col, compact = false) {
     const pct = col.isRaw && Math.abs(val) <= 1.5 ? val * 100 : val;
     return formatPercent(pct, 1);
   }
-  if (!col.isRaw && col.key === 'marketShare') return `${val.toFixed(2)}x`;
+  if (!col.isRaw && col.key === 'totalMarket') return compact ? `$${val}M` : `$${val}M`;
   return val.toFixed(2);
 }
 
