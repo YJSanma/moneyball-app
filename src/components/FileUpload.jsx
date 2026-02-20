@@ -42,11 +42,16 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
         return;
       }
       if (!result.data || result.data.length === 0) {
+        // If headers were detected, show them so the user knows what was found
+        const detected = result.data?._detectedHeaders;
+        const headerHint = detected?.length
+          ? ` Headers detected: "${detected.slice(0, 6).join('", "')}"`
+          : '';
         setStatus({
           type: 'error',
           message:
-            'No data rows found. Make sure your file has a header row with columns like ' +
-            'Category, MB GP$, MB GP%, MMS GP$, Penetration, Coverage, Tier, etc.',
+            'No data rows found. Check that your file has a header row and at least one ' +
+            'data row with a category/product name in the first column.' + headerHint,
         });
       } else {
         onDataLoaded(result.data, result.source);

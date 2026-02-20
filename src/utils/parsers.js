@@ -30,7 +30,8 @@ function normalizeNumber(val) {
   return isNaN(num) ? null : num;
 }
 
-function rowsToRecords(rows) {
+// Exported so FileUpload can show the user which headers were detected
+export function rowsToRecords(rows) {
   if (!rows || rows.length < 2) return [];
 
   const headers   = rows[0].map(String);
@@ -38,7 +39,14 @@ function rowsToRecords(rows) {
   const headerIdx = {};
   headers.forEach((h, i) => { headerIdx[h] = i; });
 
-  return rows
+  // If nothing mapped to "category", fall back to the first column.
+  // This handles PDFs where the column name is something unexpected
+  // like "Product Name", "SKU", "Item Description", etc.
+  if (!colMap.category && headers.length > 0) {
+    colMap.category = headers[0];
+  }
+
+  const records = rows
     .slice(1)
     .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''))
     .map((row, idx) => {
@@ -73,6 +81,11 @@ function rowsToRecords(rows) {
       return record;
     })
     .filter((r) => r.category);
+
+  // Attach the detected headers so the UI can show them in error messages
+  records._detectedHeaders = headers;
+  records._mappedFields    = Object.keys(colMap);
+  return records;
 }
 
 // --- File type parsers ---

@@ -89,15 +89,27 @@ export const SAMPLE_DATA = [
   { id: 57, category: 'Vaginal Health',              tier: 3, mbGpDollars: 12900000, mbGpMargin: 43.9, mmsGpDollars:  5900000, penetration: 46, coverage: 54, marketGrowth: 4.2, marketShare: 0.9 },
 ];
 
-// Flexible column name mapping for uploaded files
+// Flexible column name mapping for uploaded files.
+// Each list is checked with both "includes" directions so partial matches work.
 export const EXPECTED_COLUMNS = {
-  category:      ['category', 'product category', 'name', 'product', 'brand', 'segment', 'l2 category', 'level 2'],
-  tier:          ['tier', 'priority tier', 'tier level', 'priority'],
-  mbGpDollars:   ['mb gp$', 'mb gp dollars', 'mb gross profit', 'gp$', 'gp dollars', 'gross profit', 'gross profit dollars'],
-  mbGpMargin:    ['mb gp%', 'mb gp margin', 'mb gross margin', 'gp%', 'gp margin', 'gross margin', 'margin %', 'margin percent'],
-  mmsGpDollars:  ['mms gp$', 'mms gp dollars', 'mms gross profit', 'mms gp'],
-  penetration:   ['penetration', 'penetration %', 'pen %', 'pen', 'account penetration'],
-  coverage:      ['coverage', 'coverage %', 'cov %', 'cov', 'distribution coverage'],
-  marketGrowth:  ['market growth', 'growth rate', 'growth %', 'market growth rate', 'yoy growth', 'growth'],
-  marketShare:   ['market share', 'relative market share', 'share', 'rms', 'rel market share'],
+  category:      ['category', 'product category', 'product name', 'item', 'item name',
+                  'description', 'name', 'product', 'brand', 'segment',
+                  'l2 category', 'level 2', 'sub category', 'subcategory'],
+  tier:          ['tier', 'priority tier', 'tier level', 'priority', 'ranking'],
+  mbGpDollars:   ['mb gp$', 'mb gp dollars', 'mb gross profit', 'mb gp',
+                  'gp$', 'gp dollars', 'gross profit $', 'gross profit dollars',
+                  'gross profit', 'gp amount'],
+  mbGpMargin:    ['mb gp%', 'mb gp margin', 'mb gross margin', 'mb margin',
+                  'gp%', 'gp margin', 'gross margin', 'gross margin %',
+                  'margin %', 'margin percent', 'gp rate'],
+  mmsGpDollars:  ['mms gp$', 'mms gp dollars', 'mms gross profit', 'mms gp',
+                  'med surg gp', 'medical surgical gp'],
+  penetration:   ['penetration', 'penetration %', 'pen %', 'pen',
+                  'account penetration', 'acct pen', '% penetration'],
+  coverage:      ['coverage', 'coverage %', 'cov %', 'cov',
+                  'distribution coverage', 'distribution', 'dist coverage', '% coverage'],
+  marketGrowth:  ['market growth', 'growth rate', 'growth %', 'growth rate %',
+                  'market growth rate', 'yoy growth', 'yoy %', 'growth'],
+  marketShare:   ['market share', 'relative market share', 'rel. market share',
+                  'share', 'rms', 'rel market share', 'mkt share'],
 };
