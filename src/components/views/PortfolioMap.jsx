@@ -28,6 +28,10 @@ const QUADRANT_LABELS = [
 // ScatterChart margin prop
 const C_MARGIN = { top: 20, right: 50, bottom: 40, left: 20 };
 
+// These MUST match the width/height props set on <YAxis> and <XAxis> below.
+const YAXIS_W = 55;
+const XAXIS_H = 30;
+
 // Generate tick marks within [lo, hi] at a sensible step size
 function makeTicks(lo, hi) {
   const range = hi - lo;
@@ -132,42 +136,35 @@ export default function PortfolioMap({ data }) {
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
 
   // Convert pixel coords (relative to containerRef) to data-space coords.
-  // Uses the cached CartesianGrid bounding box for accuracy.
+  // plotBoundsRef is also containerRef-relative, so no coordinate mixing.
   const pxToData = (px, py) => {
-    const grid = plotBoundsRef.current;
-    const cont = containerRef.current?.getBoundingClientRect();
-    if (!grid || !cont) return null;
+    const plot = plotBoundsRef.current;
+    if (!plot) return null;
     const [x0, x1] = activeDomain.x;
     const [y0, y1] = activeDomain.y;
     return {
-      x: x0 + ((cont.left + px - grid.left) / grid.width)  * (x1 - x0),
-      y: y1 - ((cont.top  + py - grid.top)  / grid.height) * (y1 - y0),
+      x: x0 + ((px - plot.left) / plot.width)  * (x1 - x0),
+      y: y1 - ((py - plot.top)  / plot.height) * (y1 - y0),
     };
   };
 
   const handleMouseDown = (e) => {
     const el = containerRef.current;
     if (!el) return;
-    // Use the Y-axis and X-axis elements to derive exact plot area bounds.
-    // CartesianGrid only spans rendered tick lines (not domain edges), so
-    // its getBoundingClientRect() gives an inaccurate plot area.
-    const svgEl   = el.querySelector('svg');
-    const yAxisEl = el.querySelector('.recharts-yAxis');
-    const xAxisEl = el.querySelector('.recharts-xAxis');
-    if (!svgEl || !yAxisEl || !xAxisEl) return;
-    const svgRect   = svgEl.getBoundingClientRect();
-    const yAxisRect = yAxisEl.getBoundingClientRect();
-    const xAxisRect = xAxisEl.getBoundingClientRect();
+    const svgEl = el.querySelector('svg');
+    if (!svgEl) return;
+    const contRect = el.getBoundingClientRect();
+    const svgRect  = svgEl.getBoundingClientRect();
+    // Store plot bounds relative to containerRef (same system as dragPx)
     plotBoundsRef.current = {
-      left:   yAxisRect.right,
-      top:    svgRect.top + C_MARGIN.top,
-      width:  svgRect.right - C_MARGIN.right - yAxisRect.right,
-      height: xAxisRect.top - svgRect.top - C_MARGIN.top,
+      left:   svgRect.left - contRect.left + C_MARGIN.left + YAXIS_W,
+      top:    svgRect.top  - contRect.top  + C_MARGIN.top,
+      width:  svgRect.width  - C_MARGIN.left - YAXIS_W - C_MARGIN.right,
+      height: svgRect.height - C_MARGIN.top  - C_MARGIN.bottom - XAXIS_H,
     };
     e.preventDefault();
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - contRect.left;
+    const y = e.clientY - contRect.top;
     setDragPx({ x0: x, y0: y, x1: x, y1: y });
   };
 
@@ -332,7 +329,7 @@ export default function PortfolioMap({ data }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
               <XAxis
-                type="number" dataKey="penetration"
+                type="number" dataKey="penetration" height={XAXIS_H}
                 domain={activeDomain.x} ticks={activeXTicks}
                 tickFormatter={(v) => `${v}%`}
                 tick={{ fontSize: 12, fill: '#64748b' }}
@@ -342,7 +339,7 @@ export default function PortfolioMap({ data }) {
               </XAxis>
               <YAxis
                 type="number" dataKey="coverage"
-                domain={activeDomain.y} ticks={activeYTicks} width={55}
+                domain={activeDomain.y} ticks={activeYTicks} width={YAXIS_W}
                 tickFormatter={(v) => `${v}%`}
                 tick={{ fontSize: 12, fill: '#64748b' }}
               >
