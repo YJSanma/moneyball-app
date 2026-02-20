@@ -1,11 +1,15 @@
+// --- Number formatters ---
+
 export function formatCurrency(value, compact = false) {
   if (value == null) return '—';
   if (compact) {
     if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-    if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+    if (Math.abs(value) >= 1_000)     return `$${(value / 1_000).toFixed(0)}K`;
     return `$${value.toFixed(0)}`;
   }
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function formatPercent(value, decimals = 1) {
@@ -17,38 +21,52 @@ export function formatNumber(value, compact = false) {
   if (value == null) return '—';
   if (compact) {
     if (Math.abs(value) >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-    if (Math.abs(value) >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+    if (Math.abs(value) >= 1_000)     return `${(value / 1_000).toFixed(0)}K`;
     return value.toFixed(0);
   }
   return new Intl.NumberFormat('en-US').format(Math.round(value));
 }
 
-// Quadrant classification for Strategic Matrix (BCG-style)
+// --- Tier config (Tier 1 = highest priority, Tier 4 = lowest) ---
+// McKesson brand blue anchors Tier 1
+
+export const TIER_CONFIG = {
+  1: { label: 'Tier 1', color: '#0066CC', bg: '#e6f0ff', border: '#b3d1ff', desc: 'Invest & Grow'           },
+  2: { label: 'Tier 2', color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', desc: 'Grow Selectively'        },
+  3: { label: 'Tier 3', color: '#d97706', bg: '#fffbeb', border: '#fcd34d', desc: 'Maintain'                },
+  4: { label: 'Tier 4', color: '#6b7280', bg: '#f9fafb', border: '#d1d5db', desc: 'Monitor / Rationalize'   },
+};
+
+export function getTier(tier) {
+  return TIER_CONFIG[tier] ?? TIER_CONFIG[4];
+}
+
+// --- Strategic Matrix quadrant helpers (BCG-style) ---
+// Still used to label quadrant regions on the chart
+
 export function getQuadrant(marketGrowth, marketShare, avgGrowth = 5, avgShare = 1.0) {
   const highGrowth = marketGrowth >= avgGrowth;
-  const highShare = marketShare >= avgShare;
-  if (highGrowth && highShare) return { label: 'Stars', color: '#2563eb', bg: '#eff6ff' };
-  if (highGrowth && !highShare) return { label: 'Question Marks', color: '#d97706', bg: '#fffbeb' };
-  if (!highGrowth && highShare) return { label: 'Cash Cows', color: '#16a34a', bg: '#f0fdf4' };
-  return { label: 'Dogs', color: '#dc2626', bg: '#fef2f2' };
+  const highShare  = marketShare  >= avgShare;
+  if  (highGrowth &&  highShare) return { label: 'Stars',          color: '#2563eb', bg: '#eff6ff' };
+  if  (highGrowth && !highShare) return { label: 'Question Marks', color: '#d97706', bg: '#fffbeb' };
+  if (!highGrowth &&  highShare) return { label: 'Cash Cows',      color: '#16a34a', bg: '#f0fdf4' };
+  return                                { label: 'Dogs',           color: '#dc2626', bg: '#fef2f2' };
 }
 
-// Quadrant classification for Portfolio Map (GE/McKinsey-style)
-export function getPortfolioQuadrant(attractiveness, position) {
-  const high = 67;
-  const low = 33;
-  if (attractiveness >= high && position >= high) return { label: 'Invest/Grow', color: '#2563eb' };
-  if (attractiveness >= high && position >= low) return { label: 'Selective Growth', color: '#7c3aed' };
-  if (attractiveness >= high && position < low) return { label: 'Selectivity', color: '#d97706' };
-  if (attractiveness >= low && position >= high) return { label: 'Selective Growth', color: '#7c3aed' };
-  if (attractiveness >= low && position >= low) return { label: 'Selectivity', color: '#d97706' };
-  if (attractiveness >= low && position < low) return { label: 'Harvest/Divest', color: '#dc2626' };
-  if (attractiveness < low && position >= high) return { label: 'Selectivity', color: '#d97706' };
-  return { label: 'Harvest/Divest', color: '#dc2626' };
+// --- Portfolio Map penetration/coverage quadrant labels ---
+
+export function getPenCovQuadrant(penetration, coverage) {
+  const highPen = penetration >= 60;
+  const highCov = coverage   >= 65;
+  if  (highPen &&  highCov) return { label: 'Core Strength',            color: '#0066CC' };
+  if  (highPen && !highCov) return { label: 'Activation Opportunity',   color: '#d97706' };
+  if (!highPen &&  highCov) return { label: 'Distribution Opportunity', color: '#7c3aed' };
+  return                           { label: 'Investment Needed',        color: '#dc2626' };
 }
 
+// Chart color palette (fallback when not using tier colors)
 export const CHART_COLORS = [
-  '#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed',
-  '#0891b2', '#ea580c', '#4f46e5', '#059669', '#b45309',
-  '#6d28d9', '#0369a1',
+  '#0066CC', '#059669', '#d97706', '#6b7280',
+  '#7c3aed', '#0891b2', '#ea580c', '#4f46e5',
+  '#16a34a', '#b45309', '#6d28d9', '#0369a1',
 ];

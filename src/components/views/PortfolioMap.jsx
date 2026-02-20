@@ -1,195 +1,206 @@
-import {
-  ScatterChart,
-  Scatter,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  Cell,
-  Label,
-} from 'recharts';
-import { useMemo } from 'react';
-import { formatCurrency, formatPercent, getPortfolioQuadrant } from '../../utils/formatters';
+// Portfolio Map — Penetration vs Coverage scatter chart
+// Axes: Coverage % (X) vs Penetration % (Y)
+// Bubble size: MB GP$   |   Color: Tier
+// Quadrant labels reflect McKesson distribution/activation strategy
 
-const ZONE_INFO = [
-  { label: 'Invest/Grow', color: '#2563eb', desc: 'High attractiveness & position — priority investment' },
-  { label: 'Selective Growth', color: '#7c3aed', desc: 'Strong in one dimension — selective resource allocation' },
-  { label: 'Selectivity', color: '#d97706', desc: 'Medium priority — manage for selectivity' },
-  { label: 'Harvest/Divest', color: '#dc2626', desc: 'Low priority — harvest cash or exit' },
+import {
+  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
+  Tooltip, ReferenceLine, ResponsiveContainer, Cell, Label,
+} from 'recharts';
+import { useMemo, useState } from 'react';
+import { formatCurrency, formatPercent, getTier, getPenCovQuadrant } from '../../utils/formatters';
+
+// Threshold lines for the 4 quadrants
+const PEN_LINE = 60;
+const COV_LINE = 65;
+
+const QUADRANT_LABELS = [
+  { label: 'Core Strength',            color: '#0066CC', desc: 'High pen & coverage — protect and grow' },
+  { label: 'Activation Opportunity',   color: '#d97706', desc: 'High coverage, low pen — drive trial' },
+  { label: 'Distribution Opportunity', color: '#7c3aed', desc: 'High pen, low coverage — expand distribution' },
+  { label: 'Investment Needed',        color: '#dc2626', desc: 'Low pen & coverage — assess viability' },
 ];
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
-  const zone = getPortfolioQuadrant(d.marketAttractiveness, d.competitivePosition);
+  const t = getTier(d.tier);
+  const q = getPenCovQuadrant(d.penetration, d.coverage);
   return (
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm max-w-[220px]">
-      <p className="font-semibold text-gray-900 mb-1.5">{d.category}</p>
-      <div
-        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2 text-white"
-        style={{ backgroundColor: zone.color }}
-      >
-        {zone.label}
+      <p className="font-semibold text-gray-900 mb-1">{d.category}</p>
+      <div className="flex gap-1.5 mb-2">
+        <span
+          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+          style={{ backgroundColor: t.bg, color: t.color }}
+        >
+          {t.label}
+        </span>
+        <span
+          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
+          style={{ backgroundColor: q.color }}
+        >
+          {q.label}
+        </span>
       </div>
-      <div className="space-y-1 text-gray-600">
-        <div className="flex justify-between gap-4">
-          <span>GP$</span>
-          <span className="font-medium text-gray-900">{formatCurrency(d.gpDollars, true)}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span>GP%</span>
-          <span className="font-medium text-gray-900">{formatPercent(d.gpMargin)}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span>Attractiveness</span>
-          <span className="font-medium text-gray-900">{d.marketAttractiveness?.toFixed(0)}/100</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span>Comp. Position</span>
-          <span className="font-medium text-gray-900">{d.competitivePosition?.toFixed(0)}/100</span>
-        </div>
+      <div className="space-y-1 text-gray-600 text-xs">
+        <Row label="MB GP$"      value={formatCurrency(d.mbGpDollars, true)} />
+        <Row label="MB GP%"      value={formatPercent(d.mbGpMargin)} />
+        <Row label="MMS GP$"     value={formatCurrency(d.mmsGpDollars, true)} />
+        <Row label="Penetration" value={formatPercent(d.penetration, 0)} />
+        <Row label="Coverage"    value={formatPercent(d.coverage, 0)} />
       </div>
     </div>
   );
 }
 
-// 3x3 GE-McKinsey grid background zones
-function GridBackground() {
-  const zones = [
-    // row high (67-100), cols: high, medium, low
-    { x: '67%', y: '0%', w: '33%', h: '33%', color: '#dbeafe' },
-    { x: '33%', y: '0%', w: '34%', h: '33%', color: '#ede9fe' },
-    { x: '0%', y: '0%', w: '33%', h: '33%', color: '#fef3c7' },
-    // row medium (33-67)
-    { x: '67%', y: '33%', w: '33%', h: '34%', color: '#ede9fe' },
-    { x: '33%', y: '33%', w: '34%', h: '34%', color: '#fef3c7' },
-    { x: '0%', y: '33%', w: '33%', h: '34%', color: '#fee2e2' },
-    // row low (0-33)
-    { x: '67%', y: '67%', w: '33%', h: '33%', color: '#fef3c7' },
-    { x: '33%', y: '67%', w: '34%', h: '33%', color: '#fee2e2' },
-    { x: '0%', y: '67%', w: '33%', h: '33%', color: '#fee2e2' },
-  ];
-  return null; // handled via reference lines
+function Row({ label, value }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span>{label}</span>
+      <span className="font-medium text-gray-900">{value}</span>
+    </div>
+  );
 }
 
 export default function PortfolioMap({ data }) {
-  const chartData = useMemo(
-    () => data.filter((d) => d.marketAttractiveness != null && d.competitivePosition != null),
-    [data],
-  );
+  const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4]));
 
-  const maxGP = Math.max(...chartData.map((d) => d.gpDollars || 0), 1);
-
-  const getRadius = (gpDollars) => {
-    const minR = 8;
-    const maxR = 32;
-    const ratio = Math.sqrt((gpDollars || 0) / maxGP);
-    return minR + ratio * (maxR - minR);
+  const toggleTier = (tier) => {
+    setActiveTiers((prev) => {
+      const next = new Set(prev);
+      next.has(tier) ? next.delete(tier) : next.add(tier);
+      return next;
+    });
   };
 
-  const zoneCounts = useMemo(() => {
-    const counts = { 'Invest/Grow': 0, 'Selective Growth': 0, Selectivity: 0, 'Harvest/Divest': 0 };
+  const { chartData, maxGP } = useMemo(() => {
+    const valid = data.filter(
+      (d) => d.penetration != null && d.coverage != null && activeTiers.has(d.tier),
+    );
+    const maxG = Math.max(...data.map((d) => d.mbGpDollars || 0), 1);
+    return { chartData: valid, maxGP: maxG };
+  }, [data, activeTiers]);
+
+  const getRadius = (mbGp) => {
+    const min = 7, max = 28;
+    return min + Math.sqrt((mbGp || 0) / maxGP) * (max - min);
+  };
+
+  // Count categories per quadrant
+  const quadrantCounts = useMemo(() => {
+    const c = {};
     chartData.forEach((d) => {
-      const z = getPortfolioQuadrant(d.marketAttractiveness, d.competitivePosition);
-      counts[z.label] = (counts[z.label] || 0) + 1;
+      const q = getPenCovQuadrant(d.penetration, d.coverage);
+      c[q.label] = (c[q.label] || 0) + 1;
     });
-    return counts;
+    return c;
   }, [chartData]);
+
+  const tierCounts = useMemo(() => {
+    const c = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    data.forEach((d) => { if (d.tier) c[d.tier] = (c[d.tier] || 0) + 1; });
+    return c;
+  }, [data]);
 
   return (
     <div className="space-y-6">
+      {/* Title */}
       <div>
         <h2 className="text-xl font-bold text-gray-900">Portfolio Map</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          GE–McKinsey 9-box matrix — bubble size represents GP dollars
+          Penetration vs coverage — bubble size = MB GP$, color = tier
         </p>
       </div>
 
-      {/* Zone summary */}
+      {/* Quadrant summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {ZONE_INFO.map((z) => (
-          <div
-            key={z.label}
-            className="rounded-lg p-3 border border-gray-100 bg-white"
-          >
+        {QUADRANT_LABELS.map((q) => (
+          <div key={q.label} className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold" style={{ color: z.color }}>{z.label}</span>
-              <span className="text-lg font-bold" style={{ color: z.color }}>
-                {zoneCounts[z.label] || 0}
+              <span className="text-sm font-semibold" style={{ color: q.color }}>
+                {q.label}
+              </span>
+              <span className="text-lg font-bold" style={{ color: q.color }}>
+                {quadrantCounts[q.label] || 0}
               </span>
             </div>
-            <p className="text-xs text-gray-500 leading-tight">{z.desc}</p>
+            <p className="text-xs text-gray-500 leading-tight">{q.desc}</p>
           </div>
         ))}
       </div>
 
+      {/* Tier filter */}
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3, 4].map((tier) => {
+          const t      = getTier(tier);
+          const active = activeTiers.has(tier);
+          return (
+            <button
+              key={tier}
+              onClick={() => toggleTier(tier)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
+              style={
+                active
+                  ? { backgroundColor: t.bg, color: t.color, borderColor: t.border }
+                  : { backgroundColor: '#f9fafb', color: '#9ca3af', borderColor: '#e5e7eb' }
+              }
+            >
+              <span className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: active ? t.color : '#d1d5db' }} />
+              {t.label}
+              <span className="text-xs px-1.5 py-0.5 rounded-full"
+                style={active ? { backgroundColor: t.color + '20' } : { backgroundColor: '#f3f4f6' }}>
+                {tierCounts[tier]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        {/* 3x3 grid labels */}
-        <div className="relative mb-2">
-          <div className="flex justify-between text-xs text-gray-400 px-12">
-            <span className="text-red-400">Low Position</span>
-            <span className="text-gray-400">Medium</span>
-            <span className="text-blue-500">Strong Position</span>
-          </div>
+        {/* Axis context labels */}
+        <div className="flex justify-between text-xs text-gray-400 mb-1 px-14">
+          <span>Low Coverage ←</span>
+          <span>→ High Coverage</span>
         </div>
-        <ResponsiveContainer width="100%" height={460}>
-          <ScatterChart margin={{ top: 10, right: 30, bottom: 40, left: 20 }}>
+
+        <ResponsiveContainer width="100%" height={480}>
+          <ScatterChart margin={{ top: 10, right: 40, bottom: 40, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
-              type="number"
-              dataKey="competitivePosition"
-              domain={[0, 100]}
+              type="number" dataKey="coverage" domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
-              ticks={[0, 33, 67, 100]}
-              tickFormatter={(v) => `${v}`}
+              ticks={[0, 25, 50, 65, 75, 100]}
             >
-              <Label
-                value="Competitive Position (0–100)"
-                position="insideBottom"
-                offset={-25}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
-              />
+              <Label value="Coverage (%)" position="insideBottom" offset={-25}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
             </XAxis>
             <YAxis
-              type="number"
-              dataKey="marketAttractiveness"
-              domain={[0, 100]}
+              type="number" dataKey="penetration" domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
-              ticks={[0, 33, 67, 100]}
+              ticks={[0, 25, 50, 60, 75, 100]}
             >
-              <Label
-                value="Market Attractiveness (0–100)"
-                angle={-90}
-                position="insideLeft"
-                offset={10}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
-              />
+              <Label value="Penetration (%)" angle={-90} position="insideLeft" offset={10}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
             </YAxis>
             <Tooltip content={<CustomTooltip />} />
-            {/* 9-box grid reference lines */}
-            <ReferenceLine x={33} stroke="#e2e8f0" strokeWidth={2} />
-            <ReferenceLine x={67} stroke="#e2e8f0" strokeWidth={2} />
-            <ReferenceLine y={33} stroke="#e2e8f0" strokeWidth={2} />
-            <ReferenceLine y={67} stroke="#e2e8f0" strokeWidth={2} />
+            {/* Quadrant dividers */}
+            <ReferenceLine x={COV_LINE} stroke="#cbd5e1" strokeWidth={2} strokeDasharray="6 3" />
+            <ReferenceLine y={PEN_LINE} stroke="#cbd5e1" strokeWidth={2} strokeDasharray="6 3" />
             <Scatter
               data={chartData}
-              shape={(props) => {
-                const { cx, cy, payload } = props;
-                const r = getRadius(payload.gpDollars);
-                const zone = getPortfolioQuadrant(payload.marketAttractiveness, payload.competitivePosition);
+              shape={({ cx, cy, payload }) => {
+                const t = getTier(payload.tier);
+                const r = getRadius(payload.mbGpDollars);
                 return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={r}
-                    fill={zone.color}
-                    fillOpacity={0.75}
-                    stroke={zone.color}
-                    strokeWidth={1.5}
+                  <circle cx={cx} cy={cy} r={r}
+                    fill={t.color} fillOpacity={0.72}
+                    stroke={t.color} strokeWidth={1.5}
                   />
                 );
               }}
@@ -199,17 +210,20 @@ export default function PortfolioMap({ data }) {
           </ScatterChart>
         </ResponsiveContainer>
 
+        {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
-          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Categories</p>
+          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+            Categories ({chartData.length})
+          </p>
           <div className="flex flex-wrap gap-2">
             {chartData.map((d) => {
-              const zone = getPortfolioQuadrant(d.marketAttractiveness, d.competitivePosition);
+              const t = getTier(d.tier);
               return (
-                <span
-                  key={d.id}
-                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs text-white"
-                  style={{ backgroundColor: zone.color + 'cc' }}
+                <span key={d.id}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs"
+                  style={{ backgroundColor: t.bg, color: t.color }}
                 >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: t.color }} />
                   {d.category}
                 </span>
               );

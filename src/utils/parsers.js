@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { EXPECTED_COLUMNS } from './sampleData';
 
-// Map raw column headers to canonical field names
+// Match raw column headers from the file to our internal field names
 function mapColumns(headers) {
   const mapping = {};
   headers.forEach((header) => {
@@ -26,47 +26,60 @@ function normalizeNumber(val) {
 
 function rowsToRecords(rows) {
   if (!rows || rows.length < 2) return [];
-  const headers = rows[0].map(String);
-  const colMap = mapColumns(headers);
-  const headerIndex = {};
-  headers.forEach((h, i) => { headerIndex[h] = i; });
 
-  return rows.slice(1)
+  const headers   = rows[0].map(String);
+  const colMap    = mapColumns(headers);
+  const headerIdx = {};
+  headers.forEach((h, i) => { headerIdx[h] = i; });
+
+  return rows
+    .slice(1)
     .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''))
     .map((row, idx) => {
       const record = { id: idx + 1 };
+
       for (const [field, originalHeader] of Object.entries(colMap)) {
-        const colIdx = headerIndex[originalHeader];
+        const colIdx = headerIdx[originalHeader];
         const rawVal = colIdx !== undefined ? row[colIdx] : undefined;
+
         if (field === 'category') {
-          record[field] = rawVal !== undefined && rawVal !== null ? String(rawVal).trim() : '';
+          record[field] = rawVal != null ? String(rawVal).trim() : '';
         } else {
           record[field] = normalizeNumber(rawVal);
         }
       }
-      // Derive missing fields where possible
-      if (record.gpDollars == null && record.revenue != null && record.gpMargin != null) {
-        record.gpDollars = record.revenue * (record.gpMargin / 100);
+
+      // Derive MB GP$ from revenue + MB GP% when one is missing
+      if (record.mbGpDollars == null && record.revenue != null && record.mbGpMargin != null) {
+        record.mbGpDollars = record.revenue * (record.mbGpMargin / 100);
       }
-      if (record.gpMargin == null && record.revenue != null && record.gpDollars != null && record.revenue > 0) {
-        record.gpMargin = (record.gpDollars / record.revenue) * 100;
+      if (record.mbGpMargin == null && record.revenue != null && record.mbGpDollars != null && record.revenue > 0) {
+        record.mbGpMargin = (record.mbGpDollars / record.revenue) * 100;
       }
+
+      // Snap tier to 1–4; default to 3 if missing
+      if (record.tier != null) {
+        record.tier = Math.min(4, Math.max(1, Math.round(record.tier)));
+      } else {
+        record.tier = 3;
+      }
+
       return record;
     })
     .filter((r) => r.category);
 }
 
-// Parse Excel (.xlsx / .xls)
+// --- File type parsers ---
+
 export async function parseExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = new Uint8Array(e.target.result);
+        const data     = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
+        const rows     = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
         resolve(rowsToRecords(rows));
       } catch (err) {
         reject(new Error('Failed to parse Excel file: ' + err.message));
@@ -77,16 +90,12 @@ export async function parseExcel(file) {
   });
 }
 
-// Parse CSV
 export async function parseCsv(file) {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       complete: (result) => {
-        try {
-          resolve(rowsToRecords(result.data));
-        } catch (err) {
-          reject(new Error('Failed to process CSV: ' + err.message));
-        }
+        try   { resolve(rowsToRecords(result.data)); }
+        catch (err) { reject(new Error('Failed to process CSV: ' + err.message)); }
       },
       error: (err) => reject(new Error('Failed to parse CSV: ' + err.message)),
       skipEmptyLines: true,
@@ -94,7 +103,6 @@ export async function parseCsv(file) {
   });
 }
 
-// Parse PDF — extracts text and attempts table detection
 export async function parsePdf(file) {
   try {
     const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
@@ -104,28 +112,30 @@ export async function parsePdf(file) {
     ).toString();
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await getDocument({ data: arrayBuffer }).promise;
-    const allLines = [];
+    const pdf         = await getDocument({ data: arrayBuffer }).promise;
+    const allLines    = [];
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
+      const page    = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
-      // Group items by approximate Y position to reconstruct rows
-      const itemsByY = {};
+      // Group text items by their Y position to reconstruct table rows
+      const byY = {};
       content.items.forEach((item) => {
         const y = Math.round(item.transform[5]);
-        if (!itemsByY[y]) itemsByY[y] = [];
-        itemsByY[y].push({ x: item.transform[4], text: item.str });
+        if (!byY[y]) byY[y] = [];
+        byY[y].push({ x: item.transform[4], text: item.str });
       });
-      const sortedYs = Object.keys(itemsByY).map(Number).sort((a, b) => b - a);
-      sortedYs.forEach((y) => {
-        const row = itemsByY[y].sort((a, b) => a.x - b.x).map((i) => i.text.trim()).filter(Boolean);
-        if (row.length > 0) allLines.push(row);
-      });
+      Object.keys(byY)
+        .map(Number)
+        .sort((a, b) => b - a)
+        .forEach((y) => {
+          const row = byY[y].sort((a, b) => a.x - b.x).map((i) => i.text.trim()).filter(Boolean);
+          if (row.length) allLines.push(row);
+        });
     }
 
     if (allLines.length < 2) {
-      throw new Error('Could not extract tabular data from PDF. Please use Excel or CSV format.');
+      throw new Error('Could not extract tabular data from PDF. Use Excel or CSV format instead.');
     }
     return rowsToRecords(allLines);
   } catch (err) {
@@ -133,22 +143,19 @@ export async function parsePdf(file) {
   }
 }
 
-// Parse JPG/PNG — returns structured prompt for manual mapping
-// Since browser OCR is limited, we provide a template download and guidance
 export async function parseImage(file) {
   return new Promise((resolve) => {
-    // Return a placeholder result with instructions
     resolve({
       type: 'image',
       name: file.name,
       message:
-        'Image files cannot be parsed automatically. Please convert your data to Excel or CSV format, or use the sample data to get started.',
+        'Image files cannot be parsed automatically. Please convert your data to Excel or CSV format, or load the sample data to get started.',
     });
   });
 }
 
 export async function parseFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
+  const ext  = file.name.split('.').pop().toLowerCase();
   const type = file.type.toLowerCase();
 
   if (ext === 'xlsx' || ext === 'xls' || type.includes('spreadsheet') || type.includes('excel')) {

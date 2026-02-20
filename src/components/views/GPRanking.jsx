@@ -1,49 +1,25 @@
+// GP Ranking — Grouped MB GP$ vs MMS GP$ bars + GP% chart
+// Includes tier filter and ranked summary table
+
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  LabelList,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell, LabelList, Legend,
 } from 'recharts';
 import { useMemo, useState } from 'react';
-import { formatCurrency, formatPercent, formatNumber, CHART_COLORS } from '../../utils/formatters';
+import { formatCurrency, formatPercent, formatNumber, getTier, TIER_CONFIG } from '../../utils/formatters';
 
-const SORT_OPTIONS = [
-  { value: 'gpDollars', label: 'GP Dollars' },
-  { value: 'gpMargin', label: 'GP Margin %' },
-  { value: 'revenue', label: 'Revenue' },
-  { value: 'units', label: 'Units Sold' },
-];
-
-function DollarTooltip({ active, payload, label }) {
+function DollarTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   return (
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm">
-      <p className="font-semibold text-gray-900 mb-2">{d?.category}</p>
-      <div className="space-y-1 text-gray-600">
-        <div className="flex justify-between gap-6">
-          <span>GP$</span>
-          <span className="font-medium text-gray-900">{formatCurrency(d?.gpDollars)}</span>
-        </div>
-        <div className="flex justify-between gap-6">
-          <span>GP%</span>
-          <span className="font-medium text-gray-900">{formatPercent(d?.gpMargin)}</span>
-        </div>
-        <div className="flex justify-between gap-6">
-          <span>Revenue</span>
-          <span className="font-medium text-gray-900">{formatCurrency(d?.revenue)}</span>
-        </div>
-        {d?.units != null && (
-          <div className="flex justify-between gap-6">
-            <span>Units</span>
-            <span className="font-medium text-gray-900">{formatNumber(d?.units, true)}</span>
-          </div>
-        )}
+      <p className="font-semibold text-gray-900 mb-1.5">{d?.category}</p>
+      <div className="space-y-1 text-xs text-gray-600">
+        <Row label="MB GP$"  value={formatCurrency(d?.mbGpDollars)} />
+        <Row label="MB GP%"  value={formatPercent(d?.mbGpMargin)} />
+        <Row label="MMS GP$" value={formatCurrency(d?.mmsGpDollars)} />
+        {d?.penetration != null && <Row label="Penetration" value={formatPercent(d?.penetration, 0)} />}
+        {d?.coverage    != null && <Row label="Coverage"    value={formatPercent(d?.coverage, 0)} />}
       </div>
     </div>
   );
@@ -54,182 +30,210 @@ function MarginTooltip({ active, payload }) {
   const d = payload[0]?.payload;
   return (
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm">
-      <p className="font-semibold text-gray-900 mb-2">{d?.category}</p>
-      <div className="flex justify-between gap-6 text-gray-600">
-        <span>GP%</span>
-        <span className="font-medium text-gray-900">{formatPercent(d?.gpMargin)}</span>
-      </div>
+      <p className="font-semibold text-gray-900 mb-1">{d?.category}</p>
+      <Row label="MB GP%" value={formatPercent(d?.mbGpMargin)} />
     </div>
   );
 }
 
+function Row({ label, value }) {
+  return (
+    <div className="flex justify-between gap-6">
+      <span>{label}</span>
+      <span className="font-medium text-gray-900">{value}</span>
+    </div>
+  );
+}
+
+// Shorten long category names for bar chart labels
+const shorten = (name) => {
+  if (!name || name.length <= 16) return name;
+  const words = name.split(/\s+/);
+  return words.length > 2 ? words.slice(0, 2).join(' ') + '…' : name;
+};
+
 export default function GPRanking({ data }) {
-  const [sortBy, setSortBy] = useState('gpDollars');
+  const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4]));
+  const [sortBy, setSortBy]           = useState('mbGpDollars');
 
+  const toggleTier = (tier) => {
+    setActiveTiers((prev) => {
+      const next = new Set(prev);
+      next.has(tier) ? next.delete(tier) : next.add(tier);
+      return next;
+    });
+  };
+
+  const filtered = useMemo(
+    () => data.filter((d) => activeTiers.has(d.tier)),
+    [data, activeTiers],
+  );
+
+  // Sorted for the ranked table (respects active sort)
   const sorted = useMemo(
-    () =>
-      [...data]
-        .filter((d) => d[sortBy] != null)
-        .sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0)),
-    [data, sortBy],
+    () => [...filtered].filter((d) => d[sortBy] != null).sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0)),
+    [filtered, sortBy],
   );
 
-  const totalGP = useMemo(
-    () => sorted.reduce((s, d) => s + (d.gpDollars || 0), 0),
-    [sorted],
-  );
-
-  const avgMargin = useMemo(() => {
-    const withMargin = sorted.filter((d) => d.gpMargin != null);
-    return withMargin.length
-      ? withMargin.reduce((s, d) => s + d.gpMargin, 0) / withMargin.length
-      : 0;
-  }, [sorted]);
-
-  // GP$ bar chart data
+  // GP$ grouped bar data — sorted by mbGpDollars
   const gpDollarData = useMemo(
     () =>
-      [...data]
-        .filter((d) => d.gpDollars != null)
-        .sort((a, b) => (b.gpDollars || 0) - (a.gpDollars || 0))
-        .map((d, i) => ({ ...d, rank: i + 1, fill: CHART_COLORS[i % CHART_COLORS.length] })),
-    [data],
+      [...filtered]
+        .filter((d) => d.mbGpDollars != null)
+        .sort((a, b) => (b.mbGpDollars || 0) - (a.mbGpDollars || 0))
+        .slice(0, 20), // cap at 20 for readability
+    [filtered],
   );
 
-  // GP% bar chart data
+  // GP% bar data — sorted by mbGpMargin
   const gpMarginData = useMemo(
     () =>
-      [...data]
-        .filter((d) => d.gpMargin != null)
-        .sort((a, b) => (b.gpMargin || 0) - (a.gpMargin || 0))
-        .map((d, i) => ({ ...d, fill: CHART_COLORS[i % CHART_COLORS.length] })),
-    [data],
+      [...filtered]
+        .filter((d) => d.mbGpMargin != null)
+        .sort((a, b) => (b.mbGpMargin || 0) - (a.mbGpMargin || 0))
+        .slice(0, 20),
+    [filtered],
   );
 
-  const shortLabel = (name) => {
-    if (!name) return '';
-    const words = name.split(' ');
-    if (words.length <= 2 || name.length <= 14) return name;
-    return words.slice(0, 2).join(' ') + '…';
-  };
+  // KPI totals
+  const totalMbGP   = filtered.reduce((s, d) => s + (d.mbGpDollars  || 0), 0);
+  const totalMmsGP  = filtered.reduce((s, d) => s + (d.mmsGpDollars || 0), 0);
+  const avgMbMargin = filtered.filter((d) => d.mbGpMargin != null).length > 0
+    ? filtered.filter((d) => d.mbGpMargin != null).reduce((s, d) => s + d.mbGpMargin, 0) /
+      filtered.filter((d) => d.mbGpMargin != null).length
+    : null;
+  const avgPen = filtered.filter((d) => d.penetration != null).length > 0
+    ? filtered.filter((d) => d.penetration != null).reduce((s, d) => s + d.penetration, 0) /
+      filtered.filter((d) => d.penetration != null).length
+    : null;
+
+  const tierCounts = useMemo(() => {
+    const c = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    data.forEach((d) => { if (d.tier) c[d.tier] = (c[d.tier] || 0) + 1; });
+    return c;
+  }, [data]);
 
   return (
     <div className="space-y-6">
+      {/* Header + sort */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-900">GP Ranking</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Gross profit analysis by product category</p>
+          <p className="text-sm text-gray-500 mt-0.5">Gross profit analysis across McKesson Brands categories</p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-500">Sort by:</label>
+          <label className="text-sm text-gray-500">Rank by:</label>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
+            <option value="mbGpDollars">MB GP$</option>
+            <option value="mbGpMargin">MB GP%</option>
+            <option value="mmsGpDollars">MMS GP$</option>
+            <option value="penetration">Penetration %</option>
+            <option value="coverage">Coverage %</option>
           </select>
         </div>
       </div>
 
-      {/* Summary KPIs */}
+      {/* Tier filter */}
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3, 4].map((tier) => {
+          const t      = getTier(tier);
+          const active = activeTiers.has(tier);
+          return (
+            <button
+              key={tier}
+              onClick={() => toggleTier(tier)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
+              style={
+                active
+                  ? { backgroundColor: t.bg, color: t.color, borderColor: t.border }
+                  : { backgroundColor: '#f9fafb', color: '#9ca3af', borderColor: '#e5e7eb' }
+              }
+            >
+              <span className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: active ? t.color : '#d1d5db' }} />
+              {t.label} — {t.desc}
+              <span className="text-xs px-1.5 py-0.5 rounded-full"
+                style={active ? { backgroundColor: t.color + '20' } : { backgroundColor: '#f3f4f6' }}>
+                {tierCounts[tier]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* KPI summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total GP$', value: formatCurrency(totalGP, true), sub: 'Across all categories' },
-          { label: 'Avg GP Margin', value: formatPercent(avgMargin), sub: 'Portfolio average' },
-          {
-            label: '#1 Category',
-            value: gpDollarData[0]?.category || '—',
-            sub: `${formatCurrency(gpDollarData[0]?.gpDollars, true)} GP$`,
-          },
-          {
-            label: 'Highest Margin',
-            value: gpMarginData[0]?.category || '—',
-            sub: `${formatPercent(gpMarginData[0]?.gpMargin)} GP%`,
-          },
+          { label: 'Total MB GP$',   value: formatCurrency(totalMbGP, true),    sub: `${filtered.length} categories` },
+          { label: 'Total MMS GP$',  value: formatCurrency(totalMmsGP, true),   sub: 'McKesson Medical-Surgical' },
+          { label: 'Avg MB GP%',     value: formatPercent(avgMbMargin),          sub: 'Portfolio margin average' },
+          { label: 'Avg Penetration',value: formatPercent(avgPen, 0),            sub: 'Account penetration' },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
-            <p className="text-lg font-bold text-gray-900 truncate">{kpi.value}</p>
+            <p className="text-lg font-bold text-gray-900">{kpi.value}</p>
             <p className="text-xs text-gray-400">{kpi.sub}</p>
           </div>
         ))}
       </div>
 
-      {/* GP$ Bar Chart */}
+      {/* MB GP$ vs MMS GP$ — grouped horizontal bars */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base font-semibold text-gray-800 mb-4">Gross Profit Dollars by Category</h3>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={gpDollarData}
-            layout="vertical"
-            margin={{ top: 0, right: 80, bottom: 0, left: 10 }}
-          >
+        <h3 className="text-base font-semibold text-gray-800 mb-1">MB GP$ vs MMS GP$ by Category</h3>
+        <p className="text-xs text-gray-400 mb-4">Top 20 by MB GP$ — sorted highest to lowest</p>
+        <ResponsiveContainer width="100%" height={Math.max(320, gpDollarData.length * 30 + 60)}>
+          <BarChart data={gpDollarData} layout="vertical" margin={{ top: 0, right: 90, bottom: 0, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-            <XAxis
-              type="number"
-              tickFormatter={(v) => formatCurrency(v, true)}
-              tick={{ fontSize: 11, fill: '#64748b' }}
-            />
-            <YAxis
-              type="category"
-              dataKey="category"
-              width={120}
-              tick={{ fontSize: 11, fill: '#374151' }}
-              tickFormatter={shortLabel}
-            />
+            <XAxis type="number" tickFormatter={(v) => formatCurrency(v, true)}
+              tick={{ fontSize: 11, fill: '#64748b' }} />
+            <YAxis type="category" dataKey="category" width={130}
+              tick={{ fontSize: 10, fill: '#374151' }} tickFormatter={shorten} />
             <Tooltip content={<DollarTooltip />} />
-            <Bar dataKey="gpDollars" radius={[0, 4, 4, 0]} barSize={20}>
-              {gpDollarData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} />
+            <Legend
+              formatter={(value) => value === 'mbGpDollars' ? 'MB GP$' : 'MMS GP$'}
+              iconType="circle" iconSize={8}
+              wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+            />
+            <Bar dataKey="mbGpDollars"  name="mbGpDollars"  radius={[0, 3, 3, 0]} barSize={10}>
+              {gpDollarData.map((d, i) => (
+                <Cell key={i} fill={getTier(d.tier).color} fillOpacity={0.85} />
               ))}
-              <LabelList
-                dataKey="gpDollars"
-                position="right"
+              <LabelList dataKey="mbGpDollars" position="right"
                 formatter={(v) => formatCurrency(v, true)}
-                style={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
-              />
+                style={{ fontSize: 10, fill: '#374151', fontWeight: 500 }} />
+            </Bar>
+            <Bar dataKey="mmsGpDollars" name="mmsGpDollars" radius={[0, 3, 3, 0]} barSize={10}>
+              {gpDollarData.map((d, i) => (
+                <Cell key={i} fill={getTier(d.tier).color} fillOpacity={0.35} />
+              ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* GP% Bar Chart */}
+      {/* MB GP% bar chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base font-semibold text-gray-800 mb-4">Gross Profit Margin % by Category</h3>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={gpMarginData}
-            layout="vertical"
-            margin={{ top: 0, right: 70, bottom: 0, left: 10 }}
-          >
+        <h3 className="text-base font-semibold text-gray-800 mb-1">MB GP% by Category</h3>
+        <p className="text-xs text-gray-400 mb-4">Sorted by highest gross margin</p>
+        <ResponsiveContainer width="100%" height={Math.max(320, gpMarginData.length * 30 + 60)}>
+          <BarChart data={gpMarginData} layout="vertical" margin={{ top: 0, right: 60, bottom: 0, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-            <XAxis
-              type="number"
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11, fill: '#64748b' }}
-              domain={[0, 'dataMax + 5']}
-            />
-            <YAxis
-              type="category"
-              dataKey="category"
-              width={120}
-              tick={{ fontSize: 11, fill: '#374151' }}
-              tickFormatter={shortLabel}
-            />
+            <XAxis type="number" tickFormatter={(v) => `${v}%`} domain={[0, 'dataMax + 5']}
+              tick={{ fontSize: 11, fill: '#64748b' }} />
+            <YAxis type="category" dataKey="category" width={130}
+              tick={{ fontSize: 10, fill: '#374151' }} tickFormatter={shorten} />
             <Tooltip content={<MarginTooltip />} />
-            <Bar dataKey="gpMargin" radius={[0, 4, 4, 0]} barSize={20}>
-              {gpMarginData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} />
+            <Bar dataKey="mbGpMargin" radius={[0, 3, 3, 0]} barSize={10}>
+              {gpMarginData.map((d, i) => (
+                <Cell key={i} fill={getTier(d.tier).color} fillOpacity={0.82} />
               ))}
-              <LabelList
-                dataKey="gpMargin"
-                position="right"
+              <LabelList dataKey="mbGpMargin" position="right"
                 formatter={(v) => `${v?.toFixed(1)}%`}
-                style={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
-              />
+                style={{ fontSize: 10, fill: '#374151', fontWeight: 500 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -239,49 +243,60 @@ export default function GPRanking({ data }) {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100">
           <h3 className="text-base font-semibold text-gray-800">
-            Ranked by {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
+            Ranked by {
+              { mbGpDollars: 'MB GP$', mbGpMargin: 'MB GP%', mmsGpDollars: 'MMS GP$',
+                penetration: 'Penetration', coverage: 'Coverage' }[sortBy]
+            }
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">#</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Category</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">GP$</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">GP%</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Revenue</th>
+                {['#', 'Category', 'Tier', 'MB GP$', 'MB GP%', 'MMS GP$', 'Pen.', 'Coverage'].map((h) => (
+                  <th key={h}
+                    className="px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left whitespace-nowrap">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {sorted.map((d, i) => (
-                <tr key={d.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2.5">
-                    <span
-                      className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
-                    >
-                      {i + 1}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{d.category}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-700">{formatCurrency(d.gpDollars)}</td>
-                  <td className="px-4 py-2.5 text-right">
-                    <span
-                      className={`font-medium ${
-                        (d.gpMargin || 0) >= 40
-                          ? 'text-green-600'
-                          : (d.gpMargin || 0) >= 30
-                          ? 'text-blue-600'
-                          : 'text-amber-600'
-                      }`}
-                    >
-                      {formatPercent(d.gpMargin)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-gray-700">{formatCurrency(d.revenue)}</td>
-                </tr>
-              ))}
+              {sorted.map((d, i) => {
+                const t = getTier(d.tier);
+                return (
+                  <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white"
+                        style={{ backgroundColor: t.color }}>
+                        {i + 1}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">
+                      {d.category}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
+                        style={{ backgroundColor: t.bg, color: t.color }}>
+                        {t.label}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{formatCurrency(d.mbGpDollars)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={`font-medium ${
+                        (d.mbGpMargin || 0) >= 45 ? 'text-green-600'
+                        : (d.mbGpMargin || 0) >= 35 ? 'text-blue-600'
+                        : 'text-amber-600'
+                      }`}>
+                        {formatPercent(d.mbGpMargin)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{formatCurrency(d.mmsGpDollars)}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{formatPercent(d.penetration, 0)}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{formatPercent(d.coverage, 0)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
