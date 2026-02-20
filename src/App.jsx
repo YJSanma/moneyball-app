@@ -22,7 +22,7 @@ const VIEWS = [
 
 export default function App() {
   const [data,           setData]           = useState(SAMPLE_DATA);
-  const [dataSource,     setDataSource]     = useState('Sample Data — 57 L2 Categories');
+  const [dataSource,     setDataSource]     = useState('Sample Data');
   const [activeView,     setActiveView]     = useState('portfolio');
   // When the user changes tabs, clear any open category detail page
   const handleSetActiveView = (id) => { setActiveView(id); setSelectedCategory(null); };
@@ -50,7 +50,7 @@ export default function App() {
 
   const handleLoadSample = () => {
     setData(SAMPLE_DATA);
-    setDataSource('Sample Data — 57 L2 Categories');
+    setDataSource('Sample Data');
     setShowUpload(false);
     setActiveView('portfolio');
     setSelectedCategory(null);
