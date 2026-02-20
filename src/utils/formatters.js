@@ -56,12 +56,22 @@ export function getQuadrant(marketGrowth, marketShare, avgGrowth = 5, avgShare =
 // --- Portfolio Map penetration/coverage quadrant labels ---
 
 export function getPenCovQuadrant(penetration, coverage) {
-  const highPen = penetration >= 60;
-  const highCov = coverage   >= 65;
-  if  (highPen &&  highCov) return { label: 'Assortment Leader',   color: '#0066CC' };
-  if  (highPen && !highCov) return { label: 'Selective Winner',    color: '#059669' };
-  if (!highPen &&  highCov) return { label: 'Reassessment',        color: '#7c3aed' };
-  return                           { label: 'Untapped Potential',  color: '#d97706' };
+  const highPen = penetration >= 25;
+  const highCov = coverage   >= 25;
+  if  (highPen &&  highCov) return { label: 'Assortment Leader',        color: '#0066CC', bg: '#dbeafe' };
+  if  (highPen && !highCov) return { label: 'Selective Winner',         color: '#1d4ed8', bg: '#dbeafe' };
+  if (!highPen &&  highCov) return { label: 'Reassessment',             color: '#3b82f6', bg: '#eff6ff' };
+  return                           { label: 'Untapped Potential',       color: '#6b7280', bg: '#f3f4f6' };
+}
+
+// Framework 2 quadrant — x=0 and y=0 thresholds
+export function getGrowthQuadrant(mbOutpaceMms, mmsOutpaceMarket) {
+  const highMb  = mbOutpaceMms     >= 0;
+  const highMms = mmsOutpaceMarket >= 0;
+  if  (highMb &&  highMms) return { label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' };
+  if  (highMb && !highMms) return { label: 'MB Champions',              color: '#3b82f6', bg: '#eff6ff' };
+  if (!highMb &&  highMms) return { label: 'Opportunity Gap',           color: '#3b82f6', bg: '#eff6ff' };
+  return                          { label: 'Evaluation Candidates',     color: '#6b7280', bg: '#f3f4f6' };
 }
 
 // Chart color palette (fallback when not using tier colors)

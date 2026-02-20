@@ -3,19 +3,51 @@
 
 import { useMemo, useState } from 'react';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react';
-import { formatCurrency, formatPercent, getTier } from '../../utils/formatters';
+import {
+  formatCurrency, formatPercent, getTier,
+  getPenCovQuadrant, getGrowthQuadrant,
+} from '../../utils/formatters';
 
+// compute: optional function(row) => value, used for derived columns
 const COLUMNS = [
-  { key: 'category',     label: 'Category',     align: 'left',  format: (v) => v || '—' },
-  { key: 'tier',         label: 'Tier',         align: 'left',  format: null }, // rendered as badge
-  { key: 'mbGpDollars',  label: 'MB GP$',       align: 'right', format: (v) => formatCurrency(v) },
-  { key: 'mbGpMargin',   label: 'MB GP%',       align: 'right', format: null }, // rendered as badge
-  { key: 'mmsGpDollars', label: 'MMS GP$',      align: 'right', format: (v) => formatCurrency(v) },
-  { key: 'penetration',  label: 'Penetration',  align: 'right', format: (v) => formatPercent(v, 0) },
-  { key: 'coverage',     label: 'Coverage',     align: 'right', format: (v) => formatPercent(v, 0) },
-  { key: 'marketGrowth', label: 'Mkt Growth',   align: 'right', format: (v) => formatPercent(v) },
-  { key: 'marketShare',  label: 'Rel. Share',   align: 'right', format: (v) => v != null ? `${v.toFixed(2)}x` : '—' },
+  { key: 'category',     label: 'Category',      align: 'left',  format: (v) => v || '—' },
+  { key: 'tier',         label: 'Tier',           align: 'left',  format: null },
+  { key: 'mbGpDollars',  label: 'MB GP$',         align: 'right', format: (v) => formatCurrency(v) },
+  { key: 'mbGpMargin',   label: 'MB GP%',         align: 'right', format: null },
+  { key: 'mmsGpDollars', label: 'MMS GP$',        align: 'right', format: (v) => formatCurrency(v) },
+  { key: 'penetration',  label: 'Penetration',    align: 'right', format: (v) => formatPercent(v, 0) },
+  { key: 'coverage',     label: 'Coverage',       align: 'right', format: (v) => formatPercent(v, 0) },
+  { key: 'marketGrowth', label: 'Mkt Growth',     align: 'right', format: (v) => formatPercent(v) },
+  { key: 'marketShare',  label: 'Rel. Share',     align: 'right', format: (v) => v != null ? `${v.toFixed(2)}x` : '—' },
+  // Derived quadrant columns — computed from other fields, not stored on the row
+  {
+    key: 'f1Quadrant',
+    label: 'F1 Quadrant',
+    align: 'left',
+    format: null,
+    compute: (row) => row.penetration != null && row.coverage != null
+      ? getPenCovQuadrant(row.penetration, row.coverage)
+      : null,
+  },
+  {
+    key: 'f2Quadrant',
+    label: 'F2 Quadrant',
+    align: 'left',
+    format: null,
+    compute: (row) => row.mbOutpaceMms != null && row.mmsOutpaceMarket != null
+      ? getGrowthQuadrant(row.mbOutpaceMms, row.mmsOutpaceMarket)
+      : null,
+  },
 ];
+
+// Returns the sortable value for a row given a column definition
+function getVal(row, col) {
+  if (col.compute) {
+    const q = col.compute(row);
+    return q ? q.label : '';
+  }
+  return row[col.key];
+}
 
 function SortIcon({ col, sortCol, sortDir }) {
   if (col !== sortCol) return <ArrowUpDown size={12} className="text-gray-300" />;
@@ -47,11 +79,25 @@ function MarginBadge({ value }) {
   );
 }
 
+function QuadrantBadge({ quadrant }) {
+  if (!quadrant) return <span className="text-gray-400">—</span>;
+  return (
+    <span className="px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
+      style={{ backgroundColor: quadrant.bg, color: quadrant.color }}>
+      {quadrant.label}
+    </span>
+  );
+}
+
 function exportToCsv(rows) {
   const headers = COLUMNS.map((c) => c.label);
-  const lines   = rows.map((d) =>
-    COLUMNS.map((c) => {
-      const v = d[c.key];
+  const lines   = rows.map((row) =>
+    COLUMNS.map((col) => {
+      if (col.compute) {
+        const q = col.compute(row);
+        return q ? `"${q.label}"` : '';
+      }
+      const v = row[col.key];
       if (v == null) return '';
       if (typeof v === 'number') return v;
       return `"${String(v).replace(/"/g, '""')}"`;
@@ -68,16 +114,16 @@ function exportToCsv(rows) {
 }
 
 export default function DataTable({ data }) {
-  const [search,       setSearch]       = useState('');
-  const [tierFilter,   setTierFilter]   = useState('all');
-  const [sortCol,      setSortCol]      = useState('mbGpDollars');
-  const [sortDir,      setSortDir]      = useState('desc');
+  const [search,     setSearch]     = useState('');
+  const [tierFilter, setTierFilter] = useState('all');
+  const [sortCol,    setSortCol]    = useState('mbGpDollars');
+  const [sortDir,    setSortDir]    = useState('desc');
 
-  const handleSort = (col) => {
-    if (col === sortCol) {
+  const handleSort = (colKey) => {
+    if (colKey === sortCol) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortCol(col);
+      setSortCol(colKey);
       setSortDir('desc');
     }
   };
@@ -92,8 +138,10 @@ export default function DataTable({ data }) {
   }, [data, search, tierFilter]);
 
   const sorted = useMemo(() => {
+    const col = COLUMNS.find((c) => c.key === sortCol);
     return [...filtered].sort((a, b) => {
-      const av = a[sortCol], bv = b[sortCol];
+      const av = col ? getVal(a, col) : a[sortCol];
+      const bv = col ? getVal(b, col) : b[sortCol];
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
       if (bv == null) return -1;
@@ -186,18 +234,23 @@ export default function DataTable({ data }) {
             <tbody className="divide-y divide-gray-50">
               {sorted.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/20 transition-colors">
-                  {COLUMNS.map((col) => (
-                    <td key={col.key}
-                      className={`px-3 py-2.5 whitespace-nowrap
-                        ${col.align === 'right' ? 'text-right' : ''}
-                        ${col.key === 'category' ? 'font-medium text-gray-900' : 'text-gray-600'}`}
-                    >
-                      {col.key === 'tier'       ? <TierBadge tier={row.tier} />
-                      : col.key === 'mbGpMargin' ? <MarginBadge value={row.mbGpMargin} />
-                      : col.format              ? col.format(row[col.key])
-                      : row[col.key] ?? '—'}
-                    </td>
-                  ))}
+                  {COLUMNS.map((col) => {
+                    let cell;
+                    if (col.key === 'tier')        cell = <TierBadge tier={row.tier} />;
+                    else if (col.key === 'mbGpMargin') cell = <MarginBadge value={row.mbGpMargin} />;
+                    else if (col.compute)          cell = <QuadrantBadge quadrant={col.compute(row)} />;
+                    else if (col.format)           cell = col.format(row[col.key]);
+                    else                           cell = row[col.key] ?? '—';
+                    return (
+                      <td key={col.key}
+                        className={`px-3 py-2.5 whitespace-nowrap
+                          ${col.align === 'right' ? 'text-right' : ''}
+                          ${col.key === 'category' ? 'font-medium text-gray-900' : 'text-gray-600'}`}
+                      >
+                        {cell}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -217,6 +270,8 @@ export default function DataTable({ data }) {
                   <td className="px-3 py-2.5 text-right text-gray-700">{formatPercent(totals.coverage, 0)}</td>
                   <td className="px-3 py-2.5 text-right text-gray-400">—</td>
                   <td className="px-3 py-2.5 text-right text-gray-400">—</td>
+                  <td className="px-3 py-2.5 text-gray-400">—</td>
+                  <td className="px-3 py-2.5 text-gray-400">—</td>
                 </tr>
               </tfoot>
             )}

@@ -1,24 +1,27 @@
 // Framework 1: Balancing Portfolio Completeness and Sales Penetration
 // Axes: Penetration by Sales % (X) vs Portfolio Coverage % (Y)
-// Bubble size: MB GP$   |   Color: Tier
-// Quadrant corner labels reflect assortment and penetration strategy
+// Fixed quadrant thresholds: x=25%, y=25%
+// Quadrant backgrounds rendered via ReferenceArea; corner labels built in
 
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
-  Tooltip, ReferenceLine, ResponsiveContainer, Cell, Label,
+  Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer, Cell, Label,
 } from 'recharts';
 import { useMemo, useState } from 'react';
 import { formatCurrency, formatPercent, getTier, getPenCovQuadrant } from '../../utils/formatters';
 
-// Threshold lines for the 4 quadrants
-const PEN_LINE = 60;
-const COV_LINE = 65;
+const PEN_LINE = 25;
+const COV_LINE = 25;
+
+// Light blue for the two "needs work" quadrants, dark blue for the two "winning" quadrants
+const LIGHT_BLUE = '#bfdbfe'; // blue-200
+const DARK_BLUE  = '#1d4ed8'; // blue-700
 
 const QUADRANT_LABELS = [
-  { label: 'Assortment Leader',   color: '#0066CC', desc: 'High penetration & coverage — core portfolio strength' },
-  { label: 'Selective Winner',    color: '#059669', desc: 'High penetration, low coverage — selective distribution success' },
-  { label: 'Reassessment',        color: '#7c3aed', desc: 'High coverage, low penetration — expand trial and activation' },
-  { label: 'Untapped Potential',  color: '#d97706', desc: 'Low penetration & coverage — build reach and awareness' },
+  { label: 'Assortment Leader',  color: '#0066CC', desc: 'High penetration & coverage — core portfolio strength' },
+  { label: 'Selective Winner',   color: '#1d4ed8', desc: 'High penetration, low coverage — selective distribution success' },
+  { label: 'Reassessment',       color: '#3b82f6', desc: 'High coverage, low penetration — expand trial and activation' },
+  { label: 'Untapped Potential', color: '#6b7280', desc: 'Low penetration & coverage — build reach and awareness' },
 ];
 
 function CustomTooltip({ active, payload }) {
@@ -31,16 +34,12 @@ function CustomTooltip({ active, payload }) {
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm max-w-[220px]">
       <p className="font-semibold text-gray-900 mb-1">{d.category}</p>
       <div className="flex gap-1.5 mb-2">
-        <span
-          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{ backgroundColor: t.bg, color: t.color }}
-        >
+        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+          style={{ backgroundColor: t.bg, color: t.color }}>
           {t.label}
         </span>
-        <span
-          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
-          style={{ backgroundColor: q.color }}
-        >
+        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
+          style={{ backgroundColor: q.color }}>
           {q.label}
         </span>
       </div>
@@ -88,7 +87,6 @@ export default function PortfolioMap({ data }) {
     return min + Math.sqrt((mbGp || 0) / maxGP) * (max - min);
   };
 
-  // Count categories per quadrant
   const quadrantCounts = useMemo(() => {
     const c = {};
     chartData.forEach((d) => {
@@ -121,9 +119,7 @@ export default function PortfolioMap({ data }) {
         {QUADRANT_LABELS.map((q) => (
           <div key={q.label} className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold" style={{ color: q.color }}>
-                {q.label}
-              </span>
+              <span className="text-sm font-semibold" style={{ color: q.color }}>{q.label}</span>
               <span className="text-lg font-bold" style={{ color: q.color }}>
                 {quadrantCounts[q.label] || 0}
               </span>
@@ -159,72 +155,98 @@ export default function PortfolioMap({ data }) {
             </button>
           );
         })}
+        <span className="text-xs text-gray-400 self-center ml-1">
+          {chartData.length} of {data.length} categories shown
+        </span>
       </div>
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        {/* Axis direction helpers */}
-        <div className="flex justify-between text-xs text-gray-400 mb-1 px-14">
-          <span>Low Penetration ←</span>
-          <span>→ High Penetration</span>
-        </div>
+        <ResponsiveContainer width="100%" height={520}>
+          <ScatterChart margin={{ top: 20, right: 50, bottom: 40, left: 20 }}>
 
-        {/* Chart with corner quadrant labels overlaid */}
-        <div className="relative">
-          <ResponsiveContainer width="100%" height={480}>
-            <ScatterChart margin={{ top: 10, right: 40, bottom: 40, left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis
-                type="number" dataKey="penetration" domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-                ticks={[0, 25, 50, 60, 75, 100]}
-              >
-                <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
-                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-              </XAxis>
-              <YAxis
-                type="number" dataKey="coverage" domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 12, fill: '#64748b' }}
-                ticks={[0, 25, 50, 65, 75, 100]}
-              >
-                <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
-                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-              </YAxis>
-              <Tooltip content={<CustomTooltip />} />
-              {/* Quadrant dividers */}
-              <ReferenceLine x={PEN_LINE} stroke="#cbd5e1" strokeWidth={2} strokeDasharray="6 3" />
-              <ReferenceLine y={COV_LINE} stroke="#cbd5e1" strokeWidth={2} strokeDasharray="6 3" />
-              <Scatter
-                data={chartData}
-                shape={({ cx, cy, payload }) => {
-                  const t = getTier(payload.tier);
-                  const r = getRadius(payload.mbGpDollars);
-                  return (
+            {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
+            {/* Top-left: Reassessment (light blue) */}
+            <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+              <Label value="Reassessment" position="insideTopLeft"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            {/* Top-right: Assortment Leader (dark blue) */}
+            <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+              <Label value="Assortment Leader" position="insideTopRight"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            {/* Bottom-left: Untapped Potential (light blue) */}
+            <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+              <Label value="Untapped Potential" position="insideBottomLeft"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+            {/* Bottom-right: Selective Winner (dark blue) */}
+            <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+              <Label value="Selective Winner" position="insideBottomRight"
+                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+            </ReferenceArea>
+
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+
+            <XAxis
+              type="number" dataKey="penetration" domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 12, fill: '#64748b' }}
+              ticks={[0, 25, 50, 75, 100]}
+            >
+              <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+            </XAxis>
+            <YAxis
+              type="number" dataKey="coverage" domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 12, fill: '#64748b' }}
+              ticks={[0, 25, 50, 75, 100]}
+            >
+              <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
+                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+            </YAxis>
+
+            <Tooltip content={<CustomTooltip />} />
+
+            {/* Dashed divider lines at the quadrant thresholds */}
+            <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+            <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+
+            <Scatter
+              data={chartData}
+              shape={({ cx, cy, payload }) => {
+                if (cx == null || cy == null) return null;
+                const t = getTier(payload.tier);
+                const r = getRadius(payload.mbGpDollars);
+                // Truncate long names so labels stay compact on the chart
+                const name = (payload.category || '').length > 13
+                  ? payload.category.slice(0, 12) + '…'
+                  : (payload.category || '');
+                return (
+                  <g>
                     <circle cx={cx} cy={cy} r={r}
                       fill={t.color} fillOpacity={0.72}
                       stroke={t.color} strokeWidth={1.5}
                     />
-                  );
-                }}
-              >
-                {chartData.map((_, i) => <Cell key={i} />)}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
-
-          {/* Bold corner labels for each quadrant */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ paddingTop: 10, paddingBottom: 42, paddingLeft: 68, paddingRight: 42 }}>
-            <div className="relative w-full h-full text-xs font-bold text-slate-400">
-              <span className="absolute top-1 left-1">Reassessment</span>
-              <span className="absolute top-1 right-1 text-right">Assortment Leader</span>
-              <span className="absolute bottom-1 left-1">Untapped Potential</span>
-              <span className="absolute bottom-1 right-1 text-right">Selective Winner</span>
-            </div>
-          </div>
-        </div>
+                    {/* White outline behind label text improves legibility over colored backgrounds */}
+                    <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
+                      stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
+                      {name}
+                    </text>
+                  </g>
+                );
+              }}
+            >
+              {chartData.map((_, i) => <Cell key={i} />)}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
