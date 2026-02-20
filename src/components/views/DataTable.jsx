@@ -1,14 +1,123 @@
 // Data Table — dynamic columns matching the uploaded file, sortable/searchable
-// When an uploaded file is loaded, columns mirror the Excel headers exactly.
-// Sample data falls back to a fixed column set.
-// A synchronized top scrollbar lets users scroll right without going to the bottom.
+// Includes a weighted scoring system that ranks categories and assigns computed tiers.
 
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   formatCurrency, formatPercent, getTier,
   getPenCovQuadrant, getGrowthQuadrant,
 } from '../../utils/formatters';
+
+// ── Scoring weight column definitions ─────────────────────────────────────────
+// field: parsed record key (for sample / parsed data)
+// aliases: substrings to match against raw Excel header names (case-insensitive)
+const WEIGHT_COLUMNS = [
+  { id: 'penetration',      label: 'Penetration',           defaultWeight: 10, field: 'penetration',      aliases: ['penetration'] },
+  { id: 'coverage',         label: 'Coverage',              defaultWeight: 0,  field: 'coverage',         aliases: ['coverage'] },
+  { id: 'totalMarket',      label: 'Total Market $m',       defaultWeight: 10, field: null,               aliases: ['total market'] },
+  { id: 'marketGrowth',     label: 'Total Market Growth %', defaultWeight: 10, field: 'marketGrowth',     aliases: ['market growth', 'total market growth'] },
+  { id: 'marketShare',      label: 'MMS Market Share %',    defaultWeight: 10, field: 'marketShare',      aliases: ['mms market share', 'market share', 'mms share'] },
+  { id: 'mmsGpDollars',     label: 'MMS GP $m',             defaultWeight: 0,  field: 'mmsGpDollars',     aliases: ['mms gp'] },
+  { id: 'mmsGpMargin',      label: 'MMS GP %',              defaultWeight: 0,  field: 'mmsGpMargin',      aliases: ['mms gp %', 'mms gp margin'] },
+  { id: 'mmsGrowth',        label: 'MMS Growth',            defaultWeight: 10, field: null,               aliases: ['mms growth'] },
+  { id: 'revenue',          label: 'MB Sales $m',           defaultWeight: 5,  field: 'revenue',          aliases: ['mb sales'] },
+  { id: 'mbGpDollars',      label: 'MB GP $m',              defaultWeight: 10, field: 'mbGpDollars',      aliases: ['mb gp $m', 'mb gp dollars'] },
+  { id: 'mbGpMargin',       label: 'MB GP %',               defaultWeight: 10, field: 'mbGpMargin',       aliases: ['mb gp %', 'mb gp margin', 'mb margin'] },
+  { id: 'mbGrowth',         label: 'MB Growth',             defaultWeight: 10, field: null,               aliases: ['mb growth'] },
+  { id: 'mbOutpaceMms',     label: 'MB outpace MMS %',      defaultWeight: 5,  field: 'mbOutpaceMms',     aliases: ['mb outpace mms', 'mb outpace nb'] },
+  { id: 'mmsOutpaceMarket', label: 'MMS outpace Market %',  defaultWeight: 5,  field: 'mmsOutpaceMarket', aliases: ['mms outpace market', 'mms outpace'] },
+  { id: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      defaultWeight: 10, field: null,               aliases: ['mb gp higher than mms gp', 'mb vs mms gp', 'mb gp higher', 'mb higher than mms'] },
+];
+
+const DEFAULT_WEIGHTS = Object.fromEntries(WEIGHT_COLUMNS.map(c => [c.id, c.defaultWeight]));
+
+// Extract a numeric value from a data row for a given weight column
+function getWeightVal(row, wCol) {
+  // Try the parsed internal field first
+  if (wCol.field != null && row[wCol.field] != null) {
+    const n = Number(row[wCol.field]);
+    return isNaN(n) ? null : n;
+  }
+  // Search raw Excel headers by alias (uploaded files)
+  if (row._raw) {
+    const rawKeys = Object.keys(row._raw);
+    for (const alias of wCol.aliases) {
+      const hit = rawKeys.find(k => {
+        const kl = k.toLowerCase();
+        return kl.includes(alias) || alias.includes(kl);
+      });
+      if (hit != null) {
+        const n = Number(row._raw[hit]);
+        if (!isNaN(n)) return n;
+      }
+    }
+  }
+  return null;
+}
+
+// Rank all rows for each active weight column, compute a weighted average score,
+// assign overall rank and quartile-based tier.  Returns a new array of rows with
+// _score, _rank, and an overridden tier field.
+function computeScoring(allData, weights) {
+  if (!allData.length) return allData;
+
+  const activeCols = WEIGHT_COLUMNS.filter(c => (weights[c.id] ?? 0) > 0);
+  if (!activeCols.length) {
+    return allData.map(r => ({ ...r, _rank: null, _score: null }));
+  }
+
+  // Rank each column — higher value → rank 1 (best)
+  const rankMaps = {};
+  activeCols.forEach(wCol => {
+    const vals = allData
+      .map(row => ({ id: row.id, val: getWeightVal(row, wCol) }))
+      .filter(x => x.val != null)
+      .sort((a, b) => b.val - a.val);
+
+    const rMap = new Map();
+    let rank = 1;
+    vals.forEach((x, i) => {
+      if (i > 0 && vals[i].val < vals[i - 1].val) rank = i + 1;
+      rMap.set(x.id, rank);
+    });
+    rankMaps[wCol.id] = rMap;
+  });
+
+  // Weighted average score for each row (lower score = better)
+  const scored = allData.map(row => {
+    let weightedSum = 0;
+    let usedW = 0;
+    activeCols.forEach(wCol => {
+      const w = weights[wCol.id] ?? 0;
+      const rank = rankMaps[wCol.id]?.get(row.id);
+      if (rank != null) {
+        weightedSum += rank * w;
+        usedW += w;
+      }
+    });
+    return { ...row, _score: usedW > 0 ? weightedSum / usedW : null };
+  });
+
+  // Overall rank and quartile tier
+  const withScores = scored.filter(r => r._score != null).sort((a, b) => a._score - b._score);
+  const n = withScores.length;
+  const rankMap = new Map();
+  const tierMap = new Map();
+  withScores.forEach((r, i) => {
+    rankMap.set(r.id, i + 1);
+    const tier =
+      i < Math.ceil(n * 0.25) ? 1 :
+      i < Math.ceil(n * 0.50) ? 2 :
+      i < Math.ceil(n * 0.75) ? 3 : 4;
+    tierMap.set(r.id, tier);
+  });
+
+  return scored.map(row => ({
+    ...row,
+    _rank: rankMap.get(row.id) ?? null,
+    tier:  tierMap.get(row.id) ?? row.tier,   // override with computed tier
+  }));
+}
 
 // ── Static columns used when there is no raw Excel data (sample data) ─────────
 const STATIC_COLUMNS = [
@@ -34,8 +143,6 @@ const STATIC_COLUMNS = [
 ];
 
 // ── Build columns dynamically from the raw Excel headers ─────────────────────
-// Inserts a Tier column after the first (category) column.
-// Appends F1 / F2 Quadrant columns at the end.
 function buildDynamicColumns(headers) {
   const raw = headers
     .map((h, i) => {
@@ -48,12 +155,10 @@ function buildDynamicColumns(headers) {
       let isCategory = false;
 
       if (i === 0) {
-        // First column is always the category name
         isCategory = true;
         align = 'left';
         format = (v) => (v != null ? String(v) : '—');
       } else if (hl.includes('$m')) {
-        // Already in millions — show as $X.XM
         format = (v) => {
           const n = Number(v);
           return v == null || v === '' || isNaN(n) ? '—' : `$${n.toFixed(1)}M`;
@@ -63,7 +168,6 @@ function buildDynamicColumns(headers) {
         hl.includes('growth') || hl.includes('share')  || hl.includes('outpace') ||
         hl.includes('rate')  || hl.includes('pct')
       ) {
-        // Decimal percentages (e.g. 0.58 → 58.0%)
         format = (v) => {
           const n = Number(v);
           if (v == null || v === '' || isNaN(n)) return '—';
@@ -82,10 +186,7 @@ function buildDynamicColumns(headers) {
     })
     .filter(Boolean);
 
-  // Tier badge column always after the first (category) column
   const tierCol = { key: '__tier__', label: 'Tier', align: 'left', special: 'tier' };
-
-  // Quadrant columns appended at the end
   const f1Col = {
     key: '__f1q__', label: 'F1 Quadrant', align: 'left', special: 'f1q',
     compute: (row) => row.penetration != null && row.coverage != null
@@ -102,9 +203,11 @@ function buildDynamicColumns(headers) {
 
 // Get the sortable value for a row given a column definition
 function getVal(row, col) {
-  if (col.compute)    return col.compute(row)?.label ?? '';
-  if (col.rawHeader)  return row._raw?.[col.rawHeader] ?? null;
-  if (col.special === 'tier') return row.tier ?? null;
+  if (col.special === 'rank')  return row._rank ?? null;
+  if (col.special === 'score') return row._score ?? null;
+  if (col.compute)             return col.compute(row)?.label ?? '';
+  if (col.rawHeader)           return row._raw?.[col.rawHeader] ?? null;
+  if (col.special === 'tier')  return row.tier ?? null;
   return row[col.key] ?? null;
 }
 
@@ -154,6 +257,8 @@ function exportToCsv(rows, columns) {
   const headers = columns.map((c) => c.label);
   const lines   = rows.map((row) =>
     columns.map((col) => {
+      if (col.special === 'rank')              return row._rank ?? '';
+      if (col.special === 'score')             return row._score != null ? row._score.toFixed(1) : '';
       if (col.special === 'tier')              return row.tier ?? '';
       if (col.compute)                         return col.compute(row)?.label ?? '';
       const v = col.rawHeader ? (row._raw?.[col.rawHeader] ?? '') : (row[col.key] ?? '');
@@ -173,10 +278,12 @@ function exportToCsv(rows, columns) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function DataTable({ data }) {
-  const [search,     setSearch]     = useState('');
-  const [tierFilter, setTierFilter] = useState('all');
-  const [sortCol,    setSortCol]    = useState(null);
-  const [sortDir,    setSortDir]    = useState('desc');
+  const [search,      setSearch]      = useState('');
+  const [tierFilter,  setTierFilter]  = useState('all');
+  const [sortCol,     setSortCol]     = useState(null);
+  const [sortDir,     setSortDir]     = useState('asc');       // rank col → asc by default
+  const [weights,     setWeights]     = useState(DEFAULT_WEIGHTS);
+  const [showWeights, setShowWeights] = useState(false);
 
   // Refs for synchronized top scrollbar
   const tableWrapRef = useRef(null);
@@ -186,6 +293,7 @@ export default function DataTable({ data }) {
   // Dynamic mode when records carry _raw (uploaded file); static for sample data
   const isDynamic = data.length > 0 && !!data[0]?._raw;
 
+  // Base columns from headers or static definition
   const columns = useMemo(() => {
     if (isDynamic) {
       const rawHeaders = data._detectedHeaders || [];
@@ -194,10 +302,27 @@ export default function DataTable({ data }) {
     return STATIC_COLUMNS;
   }, [isDynamic, data]);
 
-  // Pick a sensible default sort column when columns change
+  // Apply weighted scoring to full dataset
+  const scoredData = useMemo(() => computeScoring(data, weights), [data, weights]);
+
+  // Inject Rank (#) and Score columns around the Tier column
+  const displayColumns = useMemo(() => {
+    const rankCol  = { key: '__rank__',  label: '#',     align: 'center', special: 'rank'  };
+    const scoreCol = { key: '__score__', label: 'Score', align: 'right',  special: 'score' };
+    const result   = [...columns];
+    const tierIdx  = result.findIndex(c => c.key === '__tier__');
+    if (tierIdx >= 0) {
+      result.splice(tierIdx + 1, 0, scoreCol);
+    } else {
+      result.push(scoreCol);
+    }
+    return [rankCol, ...result];
+  }, [columns]);
+
+  // Default sort on the rank column when columns change
   useEffect(() => {
-    const firstNumeric = columns.find((c) => c.align === 'right' && !c.compute && !c.special);
-    setSortCol(firstNumeric?.key ?? null);
+    setSortCol('__rank__');
+    setSortDir('asc');
   }, [columns]);
 
   // Sync the phantom top scrollbar with the table wrapper
@@ -207,14 +332,12 @@ export default function DataTable({ data }) {
     const phantom = phantomRef.current;
     if (!wrap || !top || !phantom) return;
 
-    // Keep the phantom div the same width as the scrollable content
     const ro = new ResizeObserver(() => {
       phantom.style.width = wrap.scrollWidth + 'px';
     });
     ro.observe(wrap);
     phantom.style.width = wrap.scrollWidth + 'px';
 
-    // Bidirectional scroll sync (flag prevents infinite loop)
     let syncing = false;
     const onTop  = () => { if (syncing) return; syncing = true; wrap.scrollLeft = top.scrollLeft;  syncing = false; };
     const onWrap = () => { if (syncing) return; syncing = true; top.scrollLeft  = wrap.scrollLeft; syncing = false; };
@@ -233,22 +356,23 @@ export default function DataTable({ data }) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortCol(colKey);
-      setSortDir('desc');
+      // Rank and score sort ascending by default (lower = better)
+      setSortDir(colKey === '__rank__' || colKey === '__score__' ? 'asc' : 'desc');
     }
   };
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return data.filter((d) => {
+    return scoredData.filter((d) => {
       const matchSearch = !q || (d.category || '').toLowerCase().includes(q);
       const matchTier   = tierFilter === 'all' || String(d.tier) === tierFilter;
       return matchSearch && matchTier;
     });
-  }, [data, search, tierFilter]);
+  }, [scoredData, search, tierFilter]);
 
   const sorted = useMemo(() => {
     if (!sortCol) return filtered;
-    const col = columns.find((c) => c.key === sortCol);
+    const col = displayColumns.find((c) => c.key === sortCol);
     return [...filtered].sort((a, b) => {
       const av = col ? getVal(a, col) : null;
       const bv = col ? getVal(b, col) : null;
@@ -258,12 +382,13 @@ export default function DataTable({ data }) {
       const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [filtered, sortCol, sortDir, columns]);
+  }, [filtered, sortCol, sortDir, displayColumns]);
 
-  // Footer aggregates: sum for $ columns, average for % columns
+  // Footer aggregates
   const footVals = useMemo(() =>
-    columns.map((col) => {
+    displayColumns.map((col) => {
       if (col.isCategory) return `Totals / Avg (${sorted.length})`;
+      if (col.special === 'rank' || col.special === 'score') return '—';
       if (col.special)    return '—';
 
       const nums = sorted
@@ -283,7 +408,6 @@ export default function DataTable({ data }) {
         return formatCurrency(nums.reduce((s, v) => s + v, 0));
       }
       if (col.key === 'mbGpMargin') {
-        // Rendered as a badge — return the raw avg value flagged specially
         return { _badge: true, value: nums.reduce((s, v) => s + v, 0) / nums.length };
       }
       if (
@@ -296,10 +420,25 @@ export default function DataTable({ data }) {
       }
       return '—';
     }),
-  [sorted, columns, isDynamic]);
+  [sorted, displayColumns, isDynamic]);
 
   // Render a single table cell
   function renderCell(row, col) {
+    if (col.special === 'rank') {
+      if (row._rank == null) return <span className="text-gray-400">—</span>;
+      const t = getTier(row.tier);
+      return (
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white"
+          style={{ backgroundColor: t.color }}>
+          {row._rank}
+        </span>
+      );
+    }
+    if (col.special === 'score') {
+      return row._score != null
+        ? <span className="font-mono text-xs text-gray-600">{row._score.toFixed(1)}</span>
+        : <span className="text-gray-400">—</span>;
+    }
     if (col.special === 'tier')   return <TierBadge tier={row.tier} />;
     if (col.special === 'margin') return <MarginBadge value={row.mbGpMargin} />;
     if (col.special === 'f1q' || col.special === 'f2q')
@@ -309,6 +448,8 @@ export default function DataTable({ data }) {
     return row[col.key] ?? '—';
   }
 
+  const totalW = WEIGHT_COLUMNS.reduce((s, c) => s + (weights[c.id] ?? 0), 0);
+
   return (
     <div className="space-y-4">
       {/* Header + controls */}
@@ -316,7 +457,7 @@ export default function DataTable({ data }) {
         <div>
           <h2 className="text-xl font-bold text-gray-900">Data Table</h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            {sorted.length} of {data.length} categories · {columns.length} columns
+            {sorted.length} of {data.length} categories · {displayColumns.length} columns
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -339,7 +480,7 @@ export default function DataTable({ data }) {
                 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <button
-            onClick={() => exportToCsv(sorted, columns)}
+            onClick={() => exportToCsv(sorted, displayColumns)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600
               bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -349,8 +490,59 @@ export default function DataTable({ data }) {
         </div>
       </div>
 
+      {/* Scoring weights panel */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {/* Phantom top scrollbar — always accessible without scrolling to the bottom */}
+        <button
+          onClick={() => setShowWeights(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <span>⚖ Scoring Weights</span>
+            <span className="text-xs font-normal text-gray-400">
+              — adjust to recalculate tier & rank
+            </span>
+          </div>
+          {showWeights ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        </button>
+
+        {showWeights && (
+          <div className="border-t border-gray-100 p-4">
+            <p className="text-xs text-gray-400 mb-3">
+              Higher value = more influence. Columns scored by rank (1 = best). Score = weighted average rank (lower = better).
+              Total weight: <strong className="text-gray-600">{totalW}</strong>
+            </p>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-4 gap-y-3 mb-4">
+              {WEIGHT_COLUMNS.map(wCol => (
+                <div key={wCol.id} className="flex flex-col gap-1">
+                  <label className="text-xs text-gray-500 leading-tight">{wCol.label}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={weights[wCol.id] ?? wCol.defaultWeight}
+                    onChange={e => {
+                      const val = Math.max(0, Number(e.target.value) || 0);
+                      setWeights(prev => ({ ...prev, [wCol.id]: val }));
+                    }}
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded text-center
+                      focus:outline-none focus:ring-1 focus:ring-blue-400 text-gray-700"
+                  />
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setWeights(DEFAULT_WEIGHTS)}
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            >
+              ↩ Reset to defaults
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Phantom top scrollbar */}
         <div
           ref={topScrollRef}
           className="overflow-x-auto border-b border-gray-100"
@@ -359,12 +551,11 @@ export default function DataTable({ data }) {
           <div ref={phantomRef} style={{ height: 1, minWidth: '100%' }} />
         </div>
 
-        {/* Table */}
         <div ref={tableWrapRef} className="overflow-x-auto">
           <table className="text-sm border-collapse" style={{ minWidth: 'max-content' }}>
             <thead>
               <tr>
-                {columns.map((col) => (
+                {displayColumns.map((col) => (
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
@@ -372,10 +563,10 @@ export default function DataTable({ data }) {
                       px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide
                       cursor-pointer select-none hover:text-gray-800 transition-colors whitespace-nowrap
                       bg-gray-50 border-b border-gray-200 sticky top-0 z-10
-                      ${col.align === 'right' ? 'text-right' : 'text-left'}
+                      ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}
                     `}
                   >
-                    <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
+                    <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : ''}`}>
                       {col.label}
                       <SortIcon colKey={col.key} sortCol={sortCol} sortDir={sortDir} />
                     </div>
@@ -387,12 +578,12 @@ export default function DataTable({ data }) {
             <tbody className="divide-y divide-gray-50">
               {sorted.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/20 transition-colors">
-                  {columns.map((col) => (
+                  {displayColumns.map((col) => (
                     <td
                       key={col.key}
                       className={`
                         px-3 py-2.5 whitespace-nowrap
-                        ${col.align === 'right' ? 'text-right' : ''}
+                        ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}
                         ${col.isCategory ? 'font-medium text-gray-900' : 'text-gray-600'}
                       `}
                     >
@@ -407,19 +598,17 @@ export default function DataTable({ data }) {
               <tfoot>
                 <tr className="bg-gray-50 border-t-2 border-gray-200 font-semibold text-xs">
                   {footVals.map((val, i) => {
-                    const col = columns[i];
+                    const col = displayColumns[i];
                     return (
                       <td
                         key={col.key}
                         className={`
                           px-3 py-2.5 whitespace-nowrap
-                          ${col.align === 'right' ? 'text-right' : ''}
+                          ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}
                           ${i === 0 ? 'text-gray-500 uppercase tracking-wide' : 'text-gray-400'}
                         `}
                       >
-                        {val?._badge
-                          ? <MarginBadge value={val.value} />
-                          : val}
+                        {val?._badge ? <MarginBadge value={val.value} /> : val}
                       </td>
                     );
                   })}
