@@ -69,7 +69,7 @@ export function getGrowthQuadrant(mbOutpaceMms, mmsOutpaceMarket) {
   const highMb  = mbOutpaceMms     >= 0;
   const highMms = mmsOutpaceMarket >= 0;
   if  (highMb &&  highMms) return { label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' };
-  if  (highMb && !highMms) return { label: 'MB Champions',              color: '#3b82f6', bg: '#eff6ff' };
+  if  (highMb && !highMms) return { label: 'McKesson Brands Champions',  color: '#3b82f6', bg: '#eff6ff' };
   if (!highMb &&  highMms) return { label: 'Opportunity Gap',           color: '#3b82f6', bg: '#eff6ff' };
   return                          { label: 'Evaluation Candidates',     color: '#6b7280', bg: '#f3f4f6' };
 }

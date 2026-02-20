@@ -8,7 +8,14 @@ import {
   Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer, Cell, Label,
 } from 'recharts';
 import { useMemo, useState } from 'react';
-import { formatCurrency, formatPercent, getTier } from '../../utils/formatters';
+import { formatCurrency, formatPercent, getTier, getGrowthQuadrant } from '../../utils/formatters';
+
+const QUADRANT_LABELS = [
+  { label: 'Strategy Star',            color: '#1d4ed8', bg: '#dbeafe', desc: 'MB & MMS both outpacing — strongest position' },
+  { label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff', desc: 'MMS outpacing market but MB lagging — close the gap' },
+  { label: 'McKesson Brands Champions',color: '#3b82f6', bg: '#eff6ff', desc: 'MB outpacing NB but MMS behind market — defend share' },
+  { label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6', desc: 'Both metrics lagging — review and reassess' },
+];
 
 // Large bound values so ReferenceArea fills each quadrant regardless of auto domain
 const BIG = 999;
@@ -82,6 +89,15 @@ export default function StrategicMatrix({ data }) {
     return c;
   }, [data]);
 
+  const quadrantCounts = useMemo(() => {
+    const c = {};
+    chartData.forEach((d) => {
+      const q = getGrowthQuadrant(d.mbOutpaceMms, d.mmsOutpaceMarket);
+      if (q) c[q.label] = (c[q.label] || 0) + 1;
+    });
+    return c;
+  }, [chartData]);
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -92,6 +108,21 @@ export default function StrategicMatrix({ data }) {
         <p className="text-sm text-gray-500 mt-0.5">
           MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y) — bubble size = MB GP$, color = tier
         </p>
+      </div>
+
+      {/* Quadrant summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {QUADRANT_LABELS.map((q) => (
+          <div key={q.label} className="bg-white rounded-lg border border-gray-200 p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold" style={{ color: q.color }}>{q.label}</span>
+              <span className="text-lg font-bold" style={{ color: q.color }}>
+                {quadrantCounts[q.label] || 0}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 leading-tight">{q.desc}</p>
+          </div>
+        ))}
       </div>
 
       {/* Tier filter pills */}
