@@ -172,8 +172,9 @@ export default function StrategicMatrix({ data }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
             <XAxis
-              type="number" dataKey="mbOutpaceMms" domain={['auto', 'auto']}
-              tickFormatter={(v) => `${v.toFixed(1)}%`}
+              type="number" dataKey="mbOutpaceMms"
+              domain={[-20, 20]} ticks={[-20, -10, 0, 10, 20]}
+              tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
             >
               <Label value="MB Outpace NB Growth" position="insideBottom" offset={-25}
@@ -181,7 +182,8 @@ export default function StrategicMatrix({ data }) {
             </XAxis>
             <YAxis
               type="number" dataKey="mmsOutpaceMarket"
-              tickFormatter={(v) => `${v.toFixed(1)}%`}
+              domain={[-22, 12]} ticks={[-20, -10, 0, 10]}
+              tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
             >
               <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
@@ -235,6 +237,15 @@ export default function StrategicMatrix({ data }) {
           </div>
         </div>
         </div>{/* end relative wrapper */}
+
+        {/* Note about clipped outliers */}
+        {chartData.some((d) => Math.abs(d.mbOutpaceMms) > 20) && (
+          <p className="text-xs text-gray-400 mt-2 italic">
+            * X-axis capped at ±20% for readability.{' '}
+            {chartData.filter((d) => Math.abs(d.mbOutpaceMms) > 20).map((d) => d.category).join(', ')}{' '}
+            ({chartData.filter((d) => d.mbOutpaceMms > 20).length > 0 ? '+' : ''}{chartData.find((d) => Math.abs(d.mbOutpaceMms) > 20)?.mbOutpaceMms?.toFixed(1)}%) not shown.
+          </p>
+        )}
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
