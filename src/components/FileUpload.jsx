@@ -25,6 +25,11 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
   const [loading,     setLoading]     = useState(false);
   const [status,      setStatus]      = useState(null); // { type: 'success'|'error'|'info', message }
 
+  // Incrementing this key remounts the <input> element, which clears its
+  // internal value. This lets the same file be re-uploaded without issue —
+  // browsers won't fire onChange if the path hasn't changed on the same element.
+  const [inputKey,    setInputKey]    = useState(0);
+
   // PDF staging: hold the file here until the user confirms the page range
   const [pendingPdf,  setPendingPdf]  = useState(null);
   const [pdfStart,    setPdfStart]    = useState(1);
@@ -92,7 +97,9 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
   const onInputChange = useCallback((e) => {
     const file = e.target.files[0];
     if (file) handleFile(file);
-    e.target.value = '';
+    // Remount the input after every selection so the same file can be
+    // picked again immediately (browsers skip onChange if path is unchanged)
+    setInputKey((k) => k + 1);
   }, [handleFile]);
 
   const handleParsePdf = () => {
@@ -123,6 +130,7 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
           }`}
         >
           <input
+            key={inputKey}
             type="file"
             accept={ACCEPTED}
             onChange={onInputChange}
