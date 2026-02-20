@@ -40,9 +40,8 @@ export default function App() {
   };
 
   // KPI calculations
-  const totalMbSales = data?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
-  const totalMbGP    = data?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
-  const totalMmsGP   = data?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalMbSales = data?.reduce((s, d) => s + (d.mbGpDollars  || 0), 0) ?? 0;
+  const totalMbGP    = data?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
   const withMargin = data?.filter((d) => d.mbGpMargin != null) ?? [];
   const avgMbMargin = withMargin.length
     ? withMargin.reduce((s, d) => s + d.mbGpMargin, 0) / withMargin.length
@@ -234,13 +233,11 @@ export default function App() {
         ) : (
           <>
             {/* KPI bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-              <KPICard label="Total MB Sales"  value={totalMbSales ? formatCurrency(totalMbSales, true) : '—'}
-                sub="MB net sales"               color="#0891b2" bg="#ecfeff" />
-              <KPICard label="Total MB GP$"    value={formatCurrency(totalMbGP, true)}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <KPICard label="Total MB Sales"  value={formatCurrency(totalMbSales, true)}
                 sub={`${data.length} categories`} color="#0066CC" bg="#e6f0ff" />
-              <KPICard label="Total MMS GP$"   value={formatCurrency(totalMmsGP, true)}
-                sub="McKesson Medical-Surgical"   color="#059669" bg="#ecfdf5" />
+              <KPICard label="MB GP$"          value={formatCurrency(totalMbGP, true)}
+                sub="McKesson Brands GP"          color="#059669" bg="#ecfdf5" />
               <KPICard label="Avg MB GP%"      value={avgMbMargin != null ? formatPercent(avgMbMargin) : '—'}
                 sub="Portfolio margin avg"        color="#7c3aed" bg="#f5f3ff" />
               <KPICard label="Tier 1 Categories" value={String(tier1Count)}
