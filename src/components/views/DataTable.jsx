@@ -2,7 +2,7 @@
 // Tier/rank/score are computed in App.jsx and passed in via props so all views stay in sync.
 
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import {
   formatCurrency, formatPercent, getTier,
   getPenCovQuadrant, getGrowthQuadrant,
@@ -11,7 +11,7 @@ import { WEIGHT_COLUMNS, DEFAULT_WEIGHTS } from '../../utils/scoring';
 
 // ── Static columns used when there is no raw Excel data (sample data) ─────────
 const STATIC_COLUMNS = [
-  { key: 'category',         label: 'Category',          align: 'left',  format: (v) => v || '—' },
+  { key: 'category',         label: 'Category',          align: 'left',  format: (v) => v || '—', isCategory: true },
   { key: '__tier__',         label: 'Tier',              align: 'left',  special: 'tier' },
   { key: 'mbGpDollars',      label: 'MB GP$',            align: 'right', format: (v) => formatCurrency(v) },
   { key: 'mbGpMargin',       label: 'MB GP%',            align: 'right', special: 'margin' },
@@ -176,7 +176,8 @@ function exportToCsv(rows, columns) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 // data already contains _rank, _score, and overridden tier from App.jsx scoring
-export default function DataTable({ data, weights, setWeights }) {
+// onCategoryClick(row) — called when the user clicks a category name cell
+export default function DataTable({ data, weights, setWeights, onCategoryClick }) {
   const [search,      setSearch]      = useState('');
   const [tierFilter,  setTierFilter]  = useState('all');
   const [sortCol,     setSortCol]     = useState(null);
@@ -353,6 +354,7 @@ export default function DataTable({ data, weights, setWeights }) {
           <h2 className="text-xl font-bold text-gray-900">Data Table</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             {sorted.length} of {data.length} categories · {displayColumns.length} columns
+            <span className="ml-2 text-xs" style={{ color: '#0066CC' }}>· Click a category name to view its full profile</span>
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -486,17 +488,32 @@ export default function DataTable({ data, weights, setWeights }) {
 
             <tbody className="divide-y divide-gray-50">
               {sorted.map((row) => (
-                <tr key={row.id} className="hover:bg-blue-50/20 transition-colors">
+                <tr
+                  key={row.id}
+                  onClick={onCategoryClick ? () => onCategoryClick(row) : undefined}
+                  className="transition-colors"
+                  style={onCategoryClick ? { cursor: 'pointer' } : undefined}
+                  onMouseEnter={e => { if (onCategoryClick) e.currentTarget.style.backgroundColor = '#eff6ff'; }}
+                  onMouseLeave={e => { if (onCategoryClick) e.currentTarget.style.backgroundColor = ''; }}
+                >
                   {displayColumns.map((col) => (
                     <td
                       key={col.key}
                       className={`
                         px-3 py-2.5 whitespace-nowrap
                         ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}
-                        ${col.isCategory ? 'font-medium text-gray-900' : 'text-gray-600'}
+                        ${col.isCategory ? 'font-medium' : 'text-gray-600'}
                       `}
                     >
-                      {renderCell(row, col)}
+                      {col.isCategory ? (
+                        <span
+                          className="flex items-center gap-1"
+                          style={{ color: '#0066CC', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                        >
+                          {renderCell(row, col)}
+                          <ExternalLink size={11} style={{ color: '#0066CC', opacity: 0.5, flexShrink: 0 }} />
+                        </span>
+                      ) : renderCell(row, col)}
                     </td>
                   ))}
                 </tr>

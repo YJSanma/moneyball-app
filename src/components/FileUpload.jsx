@@ -268,27 +268,6 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
         Load sample data (57 categories)
       </button>
 
-      {/* Expected columns reference */}
-      <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-        <p className="text-xs font-semibold text-gray-600 mb-2">Expected columns (flexible naming):</p>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-          {[
-            ['Category',     'Product name / segment'],
-            ['Tier',         '1 (top) → 4 (lowest)'],
-            ['MB GP$',       'McKesson Brands gross profit'],
-            ['MB GP%',       'McKesson Brands GP margin'],
-            ['MMS GP$',      'McKesson Medical-Surgical GP'],
-            ['Penetration',  'Account penetration %'],
-            ['Coverage',     'Distribution coverage %'],
-            ['Market Growth','YoY growth rate %'],
-          ].map(([col, desc]) => (
-            <div key={col} className="flex flex-col">
-              <span className="text-xs font-medium text-gray-700">{col}</span>
-              <span className="text-xs text-gray-400">{desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

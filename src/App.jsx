@@ -8,6 +8,7 @@ import StrategicMatrix from './components/views/StrategicMatrix';
 import PortfolioMap    from './components/views/PortfolioMap';
 import GPRanking       from './components/views/GPRanking';
 import DataTable       from './components/views/DataTable';
+import CategoryDetail  from './components/views/CategoryDetail';
 import { SAMPLE_DATA }   from './utils/sampleData';
 import { formatCurrency, formatPercent, getTier, TIER_CONFIG } from './utils/formatters';
 import { computeScoring, DEFAULT_WEIGHTS } from './utils/scoring';
@@ -23,9 +24,12 @@ export default function App() {
   const [data,           setData]           = useState(SAMPLE_DATA);
   const [dataSource,     setDataSource]     = useState('Sample Data — 57 L2 Categories');
   const [activeView,     setActiveView]     = useState('portfolio');
+  // When the user changes tabs, clear any open category detail page
+  const handleSetActiveView = (id) => { setActiveView(id); setSelectedCategory(null); };
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weights,        setWeights]        = useState(DEFAULT_WEIGHTS);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Apply weighted scoring once; all views receive the same scored data with overridden tiers.
   // Re-attach _detectedHeaders from the original array — computeScoring returns a new array
@@ -41,6 +45,7 @@ export default function App() {
     setDataSource(source);
     setShowUpload(false);
     setActiveView('portfolio');
+    setSelectedCategory(null);
   };
 
   const handleLoadSample = () => {
@@ -48,6 +53,7 @@ export default function App() {
     setDataSource('Sample Data — 57 L2 Categories');
     setShowUpload(false);
     setActiveView('portfolio');
+    setSelectedCategory(null);
   };
 
   // KPI calculations — use scoredData so tier counts reflect computed tiers
@@ -91,7 +97,7 @@ export default function App() {
                   return (
                     <button
                       key={view.id}
-                      onClick={() => setActiveView(view.id)}
+                      onClick={() => handleSetActiveView(view.id)}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                       style={
                         activeView === view.id
@@ -153,7 +159,7 @@ export default function App() {
                 const Icon = view.icon;
                 return (
                   <button key={view.id}
-                    onClick={() => { setActiveView(view.id); setMobileMenuOpen(false); }}
+                    onClick={() => { handleSetActiveView(view.id); setMobileMenuOpen(false); }}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                     style={
                       activeView === view.id
@@ -275,8 +281,19 @@ export default function App() {
 
             {/* Active view — all views receive the same scored data with overridden tiers */}
             {ActiveComponent && (
-              activeView === 'table'
-                ? <DataTable data={scoredData} weights={weights} setWeights={setWeights} />
+              selectedCategory ? (
+                <CategoryDetail
+                  category={selectedCategory}
+                  allData={scoredData}
+                  onBack={() => setSelectedCategory(null)}
+                />
+              ) : activeView === 'table'
+                ? <DataTable
+                    data={scoredData}
+                    weights={weights}
+                    setWeights={setWeights}
+                    onCategoryClick={setSelectedCategory}
+                  />
                 : <ActiveComponent data={scoredData} />
             )}
           </>
