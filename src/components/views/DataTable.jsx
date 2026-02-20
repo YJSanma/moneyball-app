@@ -378,25 +378,39 @@ export default function DataTable({ data, weights, setWeights }) {
       </div>
 
       {/* Scoring weights panel */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className={`bg-white rounded-xl border overflow-hidden ${totalW !== 100 ? 'border-red-300' : 'border-gray-200'}`}>
         <button
           onClick={() => setShowWeights(v => !v)}
           className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-2">
             <span>⚖ Scoring Weights</span>
-            <span className="text-xs font-normal text-gray-400">
-              — adjust to recalculate tier & rank
-            </span>
+            {totalW !== 100
+              ? <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                  Total = {totalW} — must equal 100
+                </span>
+              : <span className="text-xs font-normal text-gray-400">
+                  — adjust to recalculate tier & rank
+                </span>
+            }
           </div>
           {showWeights ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
         </button>
 
         {showWeights && (
           <div className="border-t border-gray-100 p-4">
+            {totalW !== 100 && (
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <span className="font-semibold">Weights must total 100.</span>
+                <span className="text-red-500">Current total: <strong>{totalW}</strong> ({totalW < 100 ? `${100 - totalW} short` : `${totalW - 100} over`})</span>
+                <button onClick={() => setWeights(DEFAULT_WEIGHTS)} className="ml-auto text-xs font-medium text-red-600 hover:text-red-800 underline">
+                  Reset to defaults
+                </button>
+              </div>
+            )}
             <p className="text-xs text-gray-400 mb-3">
               Higher value = more influence. Columns scored by rank (1 = best). Score = weighted average rank (lower = better).
-              Total weight: <strong className="text-gray-600">{totalW}</strong>
+              Total weight: <strong className={totalW === 100 ? 'text-green-600' : 'text-red-600'}>{totalW} / 100</strong>
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-4 gap-y-3 mb-4">
               {WEIGHT_COLUMNS.map(wCol => (
