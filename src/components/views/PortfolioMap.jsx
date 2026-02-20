@@ -7,7 +7,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer, Cell, Label,
 } from 'recharts';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, getTier, getPenCovQuadrant } from '../../utils/formatters';
 
@@ -24,6 +24,20 @@ const QUADRANT_LABELS = [
   { label: 'Reassessment',       color: '#3b82f6', desc: 'High coverage, low penetration — expand trial and activation' },
   { label: 'Untapped Potential', color: '#6b7280', desc: 'Low penetration & coverage — build reach and awareness' },
 ];
+
+// Chart layout constants — must match ScatterChart margin + explicit YAxis width
+const YAXIS_W   = 55;
+const C_MARGIN  = { top: 20, right: 50, bottom: 40, left: 20 };
+const PLOT_LEFT = C_MARGIN.left + YAXIS_W; // pixel x where the data plot area starts
+
+// Generate tick marks within [lo, hi] at a sensible step size
+function makeTicks(lo, hi) {
+  const range = hi - lo;
+  const step  = range > 40 ? 25 : range > 16 ? 10 : range > 6 ? 5 : range > 2 ? 2 : 1;
+  const t = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 0.001; v += step) t.push(Math.round(v * 10) / 10);
+  return t;
+}
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
@@ -106,6 +120,56 @@ export default function PortfolioMap({ data }) {
     return c;
   }, [data]);
 
+  // Drag-to-zoom state
+  const containerRef = useRef(null);
+  const [dragStart, setDragStart] = useState(null); // { x, y } in data space
+  const [dragEnd,   setDragEnd]   = useState(null);
+  const [zoomed,    setZoomed]    = useState(null); // { x: [lo, hi], y: [lo, hi] }
+
+  const activeDomain = zoomed ?? { x: [0, 100], y: [0, 100] };
+  const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
+  const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
+
+  // Convert a client coordinate to a data-space coordinate using chart layout constants
+  const clientToData = (clientX, clientY) => {
+    const el = containerRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const plotW = rect.width  - PLOT_LEFT - C_MARGIN.right;
+    const plotH = rect.height - C_MARGIN.top - C_MARGIN.bottom;
+    const [x0, x1] = activeDomain.x;
+    const [y0, y1] = activeDomain.y;
+    return {
+      x: Math.max(x0, Math.min(x1, x0 + ((clientX - rect.left - PLOT_LEFT) / plotW) * (x1 - x0))),
+      y: Math.max(y0, Math.min(y1, y1 - ((clientY - rect.top  - C_MARGIN.top) / plotH) * (y1 - y0))),
+    };
+  };
+
+  const handleMouseDown = (e) => {
+    const pt = clientToData(e.clientX, e.clientY);
+    if (!pt) return;
+    e.preventDefault();
+    setDragStart(pt);
+    setDragEnd(pt);
+  };
+  const handleMouseMove = (e) => {
+    if (!dragStart) return;
+    const pt = clientToData(e.clientX, e.clientY);
+    if (pt) setDragEnd(pt);
+  };
+  const handleMouseUp = () => {
+    if (!dragStart || !dragEnd) return;
+    const x0 = Math.min(dragStart.x, dragEnd.x);
+    const x1 = Math.max(dragStart.x, dragEnd.x);
+    const y0 = Math.min(dragStart.y, dragEnd.y);
+    const y1 = Math.max(dragStart.y, dragEnd.y);
+    const [rx, ry] = [activeDomain.x[1] - activeDomain.x[0], activeDomain.y[1] - activeDomain.y[0]];
+    // Only zoom if the drag was large enough to be intentional (>3% of current range)
+    if (x1 - x0 > rx * 0.03 && y1 - y0 > ry * 0.03) setZoomed({ x: [x0, x1], y: [y0, y1] });
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -177,91 +241,118 @@ export default function PortfolioMap({ data }) {
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <ResponsiveContainer width="100%" height={520}>
-          <ScatterChart margin={{ top: 20, right: 50, bottom: 40, left: 20 }}>
+        {/* Zoom hint / reset */}
+        <div className="flex items-center mb-2 h-5">
+          {zoomed
+            ? <button onClick={() => setZoomed(null)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">↩ Reset zoom</button>
+            : <p className="text-xs text-gray-400 italic select-none">Drag on the chart to zoom in</p>
+          }
+        </div>
 
-            {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
-            {/* Top-left: Reassessment (light blue) */}
-            <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="Reassessment" position="insideTopLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
-            {/* Top-right: Assortment Leader (dark blue) */}
-            <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
-              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-              <Label value="Assortment Leader" position="insideTopRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
-            {/* Bottom-left: Untapped Potential (light blue) */}
-            <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="Untapped Potential" position="insideBottomLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
-            {/* Bottom-right: Selective Winner (dark blue) */}
-            <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
-              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-              <Label value="Selective Winner" position="insideBottomRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+        {/* This div captures mouse events for drag-to-zoom */}
+        <div
+          ref={containerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={() => { setDragStart(null); setDragEnd(null); }}
+          style={{ cursor: dragStart ? 'crosshair' : 'default', userSelect: 'none' }}
+        >
+          <ResponsiveContainer width="100%" height={520}>
+            <ScatterChart margin={C_MARGIN}>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
+              {/* Top-left: Reassessment (light blue) */}
+              <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
+                fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+                <Label value="Reassessment" position="insideTopLeft"
+                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+              </ReferenceArea>
+              {/* Top-right: Assortment Leader (dark blue) */}
+              <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
+                fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+                <Label value="Assortment Leader" position="insideTopRight"
+                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+              </ReferenceArea>
+              {/* Bottom-left: Untapped Potential (light blue) */}
+              <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
+                fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
+                <Label value="Untapped Potential" position="insideBottomLeft"
+                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+              </ReferenceArea>
+              {/* Bottom-right: Selective Winner (dark blue) */}
+              <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
+                fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
+                <Label value="Selective Winner" position="insideBottomRight"
+                  style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
+              </ReferenceArea>
 
-            <XAxis
-              type="number" dataKey="penetration" domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 12, fill: '#64748b' }}
-              ticks={[0, 25, 50, 75, 100]}
-            >
-              <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-            </XAxis>
-            <YAxis
-              type="number" dataKey="coverage" domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 12, fill: '#64748b' }}
-              ticks={[0, 25, 50, 75, 100]}
-            >
-              <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
-                style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
-            </YAxis>
+              {/* Drag-to-zoom selection rectangle */}
+              {dragStart && dragEnd && (
+                <ReferenceArea
+                  x1={Math.min(dragStart.x, dragEnd.x)} x2={Math.max(dragStart.x, dragEnd.x)}
+                  y1={Math.min(dragStart.y, dragEnd.y)} y2={Math.max(dragStart.y, dragEnd.y)}
+                  stroke="#0066CC" strokeOpacity={0.6} fill="#0066CC" fillOpacity={0.1}
+                />
+              )}
 
-            <Tooltip content={<CustomTooltip />} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
-            {/* Dashed divider lines at the quadrant thresholds */}
-            <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
-            <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+              <XAxis
+                type="number" dataKey="penetration"
+                domain={activeDomain.x} ticks={activeXTicks}
+                tickFormatter={(v) => `${v}%`}
+                tick={{ fontSize: 12, fill: '#64748b' }}
+              >
+                <Label value="Penetration by Sales %" position="insideBottom" offset={-25}
+                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+              </XAxis>
+              <YAxis
+                type="number" dataKey="coverage"
+                domain={activeDomain.y} ticks={activeYTicks} width={YAXIS_W}
+                tickFormatter={(v) => `${v}%`}
+                tick={{ fontSize: 12, fill: '#64748b' }}
+              >
+                <Label value="Portfolio Coverage %" angle={-90} position="insideLeft" offset={10}
+                  style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
+              </YAxis>
 
-            <Scatter
-              data={chartData}
-              shape={({ cx, cy, payload }) => {
-                if (cx == null || cy == null) return null;
-                const t = getTier(payload.tier);
-                const r = getRadius(payload.mbGpDollars);
-                // Truncate long names so labels stay compact on the chart
-                const name = (payload.category || '').length > 13
-                  ? payload.category.slice(0, 12) + '…'
-                  : (payload.category || '');
-                return (
-                  <g>
-                    <circle cx={cx} cy={cy} r={r}
-                      fill={t.color} fillOpacity={0.72}
-                      stroke={t.color} strokeWidth={1.5}
-                    />
-                    {/* White outline behind label text improves legibility over colored backgrounds */}
-                    <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
-                      stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
-                      {name}
-                    </text>
-                  </g>
-                );
-              }}
-            >
-              {chartData.map((_, i) => <Cell key={i} />)}
-            </Scatter>
-          </ScatterChart>
-        </ResponsiveContainer>
+              <Tooltip content={dragStart ? null : <CustomTooltip />} />
+
+              {/* Dashed divider lines at the quadrant thresholds */}
+              <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+              <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+
+              <Scatter
+                data={chartData}
+                shape={({ cx, cy, payload }) => {
+                  if (cx == null || cy == null) return null;
+                  const t = getTier(payload.tier);
+                  const r = getRadius(payload.mbGpDollars);
+                  // Truncate long names so labels stay compact on the chart
+                  const name = (payload.category || '').length > 13
+                    ? payload.category.slice(0, 12) + '…'
+                    : (payload.category || '');
+                  return (
+                    <g>
+                      <circle cx={cx} cy={cy} r={r}
+                        fill={t.color} fillOpacity={0.72}
+                        stroke={t.color} strokeWidth={1.5}
+                      />
+                      {/* White outline behind label text improves legibility over colored backgrounds */}
+                      <text x={cx + r + 3} y={cy + 4} fontSize={9} fill="#1e293b"
+                        stroke="white" strokeWidth={2.5} strokeLinejoin="round" paintOrder="stroke">
+                        {name}
+                      </text>
+                    </g>
+                  );
+                }}
+              >
+                {chartData.map((_, i) => <Cell key={i} />)}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>{/* end drag-capture div */}
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">
