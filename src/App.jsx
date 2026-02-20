@@ -40,8 +40,10 @@ export default function App() {
   };
 
   // KPI calculations
-  const totalMbSales = data?.reduce((s, d) => s + (d.mbGpDollars  || 0), 0) ?? 0;
-  const totalMbGP    = data?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  // revenue    = MB Sales $m column (uploaded data)
+  // mbGpDollars = MB GP $m column (uploaded data)
+  const totalMbSales = data?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
+  const totalMbGP    = data?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
   const withMargin = data?.filter((d) => d.mbGpMargin != null) ?? [];
   const avgMbMargin = withMargin.length
     ? withMargin.reduce((s, d) => s + d.mbGpMargin, 0) / withMargin.length
@@ -234,7 +236,7 @@ export default function App() {
           <>
             {/* KPI bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <KPICard label="Total MB Sales"  value={formatCurrency(totalMbSales, true)}
+              <KPICard label="Total MB Sales"  value={totalMbSales > 0 ? formatCurrency(totalMbSales, true) : '—'}
                 sub={`${data.length} categories`} color="#0066CC" bg="#e6f0ff" />
               <KPICard label="MB GP$"          value={formatCurrency(totalMbGP, true)}
                 sub="McKesson Brands GP"          color="#059669" bg="#ecfdf5" />
