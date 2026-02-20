@@ -2,6 +2,12 @@ import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { EXPECTED_COLUMNS } from './sampleData';
 
+// Vite resolves this ?url import at build time, giving pdfjs-dist's worker
+// a proper hashed asset URL that works in both dev and Vercel production.
+// The old `new URL('pdfjs-dist/...', import.meta.url)` pattern fails in
+// production because Vite can't trace node_modules paths that way.
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
 // Match raw column headers from the file to our internal field names
 function mapColumns(headers) {
   const mapping = {};
@@ -103,22 +109,35 @@ export async function parseCsv(file) {
   });
 }
 
-export async function parsePdf(file) {
+// startPage and endPage are 1-based page numbers (inclusive).
+// Defaulting to pages 1-5 prevents timeouts on large PDFs.
+export async function parsePdf(file, { startPage = 1, endPage = 5 } = {}) {
   try {
     const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
-    GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url,
-    ).toString();
+
+    // pdfWorkerUrl is resolved by Vite at build time — works in production
+    GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf         = await getDocument({ data: arrayBuffer }).promise;
-    const allLines    = [];
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    // Clamp the requested range to what the document actually has
+    const first = Math.max(1, startPage);
+    const last  = Math.min(pdf.numPages, endPage);
+
+    if (first > pdf.numPages) {
+      throw new Error(
+        `This PDF only has ${pdf.numPages} page(s). ` +
+        `Please set the start page to ${pdf.numPages} or lower.`
+      );
+    }
+
+    const allLines = [];
+
+    for (let pageNum = first; pageNum <= last; pageNum++) {
       const page    = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
-      // Group text items by their Y position to reconstruct table rows
+      // Group text items by Y coordinate to reconstruct each visual row
       const byY = {};
       content.items.forEach((item) => {
         const y = Math.round(item.transform[5]);
@@ -127,18 +146,26 @@ export async function parsePdf(file) {
       });
       Object.keys(byY)
         .map(Number)
-        .sort((a, b) => b - a)
+        .sort((a, b) => b - a) // top of page first
         .forEach((y) => {
-          const row = byY[y].sort((a, b) => a.x - b.x).map((i) => i.text.trim()).filter(Boolean);
+          const row = byY[y]
+            .sort((a, b) => a.x - b.x)
+            .map((i) => i.text.trim())
+            .filter(Boolean);
           if (row.length) allLines.push(row);
         });
     }
 
     if (allLines.length < 2) {
-      throw new Error('Could not extract tabular data from PDF. Use Excel or CSV format instead.');
+      throw new Error(
+        `No table data found on pages ${first}–${last}. ` +
+        `Try a different page range, or use Excel/CSV for best results.`
+      );
     }
+
     return rowsToRecords(allLines);
   } catch (err) {
+    // Re-throw with a clean prefix so the UI shows a readable message
     throw new Error('PDF parsing failed: ' + err.message);
   }
 }
@@ -154,7 +181,8 @@ export async function parseImage(file) {
   });
 }
 
-export async function parseFile(file) {
+// options.startPage / options.endPage are only used for PDF files
+export async function parseFile(file, options = {}) {
   const ext  = file.name.split('.').pop().toLowerCase();
   const type = file.type.toLowerCase();
 
@@ -165,7 +193,7 @@ export async function parseFile(file) {
     return { data: await parseCsv(file), source: file.name };
   }
   if (ext === 'pdf' || type.includes('pdf')) {
-    return { data: await parsePdf(file), source: file.name };
+    return { data: await parsePdf(file, options), source: file.name };
   }
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) || type.includes('image')) {
     const result = await parseImage(file);

@@ -1,5 +1,8 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileSpreadsheet, FileText, Image, AlertCircle, CheckCircle, X } from 'lucide-react';
+import {
+  Upload, FileSpreadsheet, FileText, Image,
+  AlertCircle, CheckCircle, X, FileSearch,
+} from 'lucide-react';
 import { parseFile } from '../utils/parsers';
 
 const ACCEPTED = '.xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png';
@@ -7,22 +10,32 @@ const ACCEPTED = '.xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png';
 function FileIcon({ name }) {
   const ext = name.split('.').pop().toLowerCase();
   if (['jpg', 'jpeg', 'png'].includes(ext)) return <Image size={16} className="text-purple-500" />;
-  if (ext === 'pdf') return <FileText size={16} className="text-red-500" />;
+  if (ext === 'pdf')                         return <FileText size={16} className="text-red-500" />;
   return <FileSpreadsheet size={16} className="text-green-600" />;
 }
 
-export default function FileUpload({ onDataLoaded, onLoadSample }) {
-  const [dragging, setDragging] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // { type: 'success'|'error'|'info', message }
-  const [fileName, setFileName] = useState(null);
+function isPdf(file) {
+  const ext  = file.name.split('.').pop().toLowerCase();
+  const type = file.type.toLowerCase();
+  return ext === 'pdf' || type.includes('pdf');
+}
 
-  const handleFile = useCallback(async (file) => {
+export default function FileUpload({ onDataLoaded, onLoadSample }) {
+  const [dragging,    setDragging]    = useState(false);
+  const [loading,     setLoading]     = useState(false);
+  const [status,      setStatus]      = useState(null); // { type: 'success'|'error'|'info', message }
+
+  // PDF staging: hold the file here until the user confirms the page range
+  const [pendingPdf,  setPendingPdf]  = useState(null);
+  const [pdfStart,    setPdfStart]    = useState(1);
+  const [pdfEnd,      setPdfEnd]      = useState(5);
+
+  // Run the actual parse (used for non-PDF files immediately, PDF on button click)
+  const runParse = useCallback(async (file, options = {}) => {
     setLoading(true);
     setStatus(null);
-    setFileName(file.name);
     try {
-      const result = await parseFile(file);
+      const result = await parseFile(file, options);
       if (result.imageResult) {
         setStatus({ type: 'info', message: result.imageResult.message });
         setLoading(false);
@@ -31,7 +44,9 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
       if (!result.data || result.data.length === 0) {
         setStatus({
           type: 'error',
-          message: 'No valid data rows found. Ensure your file has a header row with columns like Category, Revenue, GP$, GP%, Market Growth, etc.',
+          message:
+            'No data rows found. Make sure your file has a header row with columns like ' +
+            'Category, MB GP$, MB GP%, MMS GP$, Penetration, Coverage, Tier, etc.',
         });
       } else {
         onDataLoaded(result.data, result.source);
@@ -39,12 +54,28 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
           type: 'success',
           message: `Loaded ${result.data.length} categories from ${result.source}`,
         });
+        setPendingPdf(null); // clear PDF staging after success
       }
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
     }
     setLoading(false);
   }, [onDataLoaded]);
+
+  // When a file is selected or dropped
+  const handleFile = useCallback((file) => {
+    setStatus(null);
+    if (isPdf(file)) {
+      // Stage the PDF and show the page range UI — don't parse yet
+      setPendingPdf(file);
+      setPdfStart(1);
+      setPdfEnd(5);
+    } else {
+      // Non-PDF files parse immediately
+      setPendingPdf(null);
+      runParse(file);
+    }
+  }, [runParse]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
@@ -59,49 +90,134 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
     e.target.value = '';
   }, [handleFile]);
 
+  const handleParsePdf = () => {
+    if (!pendingPdf) return;
+    const start = Math.max(1, parseInt(pdfStart, 10) || 1);
+    const end   = Math.max(start, parseInt(pdfEnd, 10) || start);
+    runParse(pendingPdf, { startPage: start, endPage: end });
+  };
+
+  const cancelPdf = () => {
+    setPendingPdf(null);
+    setStatus(null);
+  };
+
   return (
     <div className="space-y-3">
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${
-          dragging
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50/40'
-        }`}
-      >
-        <input
-          type="file"
-          accept={ACCEPTED}
-          onChange={onInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={loading}
-        />
-        <Upload
-          size={28}
-          className={`mx-auto mb-2 ${dragging ? 'text-blue-500' : 'text-gray-400'}`}
-        />
-        <p className="text-sm font-medium text-gray-700">
-          {loading ? 'Processing file...' : 'Drop file here or click to browse'}
-        </p>
-        <p className="text-xs text-gray-400 mt-1">
-          Supports Excel (.xlsx/.xls), CSV, PDF, JPG/PNG
-        </p>
-        {fileName && !loading && (
-          <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            <FileIcon name={fileName} />
-            <span className="truncate max-w-[200px]">{fileName}</span>
-          </div>
-        )}
-        {loading && (
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-blue-600">Parsing file...</span>
-          </div>
-        )}
-      </div>
 
+      {/* Drop zone — hidden while loading or staging a PDF */}
+      {!pendingPdf && (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${
+            dragging
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50/40'
+          }`}
+        >
+          <input
+            type="file"
+            accept={ACCEPTED}
+            onChange={onInputChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={loading}
+          />
+          <Upload size={28} className={`mx-auto mb-2 ${dragging ? 'text-blue-500' : 'text-gray-400'}`} />
+          <p className="text-sm font-medium text-gray-700">
+            {loading ? 'Processing file…' : 'Drop file here or click to browse'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">Excel (.xlsx/.xls), CSV, PDF, JPG/PNG</p>
+          {loading && (
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-blue-600">Parsing file…</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PDF page range selector — shown after a PDF is dropped/selected */}
+      {pendingPdf && (
+        <div className="bg-white border-2 border-blue-200 rounded-xl p-4 space-y-3">
+          {/* File name row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileSearch size={16} className="text-red-500" />
+              <span className="text-sm font-medium text-gray-800 truncate max-w-[220px]">
+                {pendingPdf.name}
+              </span>
+            </div>
+            <button onClick={cancelPdf} className="text-gray-400 hover:text-gray-600">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Page range inputs */}
+          <div>
+            <p className="text-xs font-semibold text-gray-700 mb-2">
+              Select page range to parse
+            </p>
+            <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+              Large PDFs can timeout if you parse all pages at once.
+              Pick only the pages that contain your data table.
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">From page</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={pdfStart}
+                  onChange={(e) => setPdfStart(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-20 px-2 py-1.5 text-sm border border-gray-200 rounded-lg text-center
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <span className="text-gray-400 mt-4">→</span>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">To page</label>
+                <input
+                  type="number"
+                  min={pdfStart}
+                  value={pdfEnd}
+                  onChange={(e) => setPdfEnd(Math.max(pdfStart, parseInt(e.target.value, 10) || pdfStart))}
+                  className="w-20 px-2 py-1.5 text-sm border border-gray-200 rounded-lg text-center
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex-1" />
+              <div className="mt-4 text-xs text-gray-400">
+                {pdfEnd - pdfStart + 1} page{pdfEnd - pdfStart !== 0 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+
+          {/* Parse button */}
+          <button
+            onClick={handleParsePdf}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg
+              text-sm font-semibold text-white transition-colors disabled:opacity-60"
+            style={{ backgroundColor: '#0066CC' }}
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Parsing pages {pdfStart}–{pdfEnd}…
+              </>
+            ) : (
+              <>
+                <FileSearch size={15} />
+                Parse pages {pdfStart}–{pdfEnd}
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Status message (success / error / info) */}
       {status && (
         <div
           className={`flex items-start gap-2 p-3 rounded-lg text-sm ${
@@ -112,46 +228,46 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
               : 'bg-blue-50 text-blue-800 border border-blue-200'
           }`}
         >
-          {status.type === 'success' ? (
-            <CheckCircle size={16} className="mt-0.5 shrink-0" />
-          ) : (
-            <AlertCircle size={16} className="mt-0.5 shrink-0" />
-          )}
+          {status.type === 'success'
+            ? <CheckCircle size={16} className="mt-0.5 shrink-0" />
+            : <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          }
           <span className="flex-1">{status.message}</span>
-          <button
-            onClick={() => setStatus(null)}
-            className="shrink-0 text-current opacity-60 hover:opacity-100"
-          >
+          <button onClick={() => setStatus(null)} className="shrink-0 opacity-60 hover:opacity-100">
             <X size={14} />
           </button>
         </div>
       )}
 
+      {/* Divider */}
       <div className="flex items-center gap-2">
         <div className="flex-1 h-px bg-gray-200" />
         <span className="text-xs text-gray-400">or</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
+      {/* Load sample data */}
       <button
         onClick={onLoadSample}
-        className="w-full py-2 px-4 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+        className="w-full py-2 px-4 text-sm font-medium rounded-lg transition-colors border"
+        style={{ color: '#0066CC', backgroundColor: '#e6f0ff', borderColor: '#b3d1ff' }}
       >
-        Load sample data (12 categories)
+        Load sample data (57 categories)
       </button>
 
+      {/* Expected columns reference */}
       <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
         <p className="text-xs font-semibold text-gray-600 mb-2">Expected columns (flexible naming):</p>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
           {[
-            ['Category', 'Product name / segment'],
-            ['Revenue', 'Net sales ($)'],
-            ['GP$', 'Gross profit dollars'],
-            ['GP%', 'Gross margin %'],
-            ['Market Growth', 'YoY growth rate %'],
-            ['Market Share', 'Relative market share'],
-            ['Attractiveness', 'Market score (0–100)'],
-            ['Comp. Position', 'Competitive score (0–100)'],
+            ['Category',     'Product name / segment'],
+            ['Tier',         '1 (top) → 4 (lowest)'],
+            ['MB GP$',       'McKesson Brands gross profit'],
+            ['MB GP%',       'McKesson Brands GP margin'],
+            ['MMS GP$',      'McKesson Medical-Surgical GP'],
+            ['Penetration',  'Account penetration %'],
+            ['Coverage',     'Distribution coverage %'],
+            ['Market Growth','YoY growth rate %'],
           ].map(([col, desc]) => (
             <div key={col} className="flex flex-col">
               <span className="text-xs font-medium text-gray-700">{col}</span>
