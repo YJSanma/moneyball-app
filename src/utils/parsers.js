@@ -8,6 +8,34 @@ import { EXPECTED_COLUMNS } from './sampleData';
 // production because Vite can't trace node_modules paths that way.
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
+// Scan the first 15 rows to find the real header row.
+// Strategy 1 (strong signal): find the first row with a cell containing "categor"
+//   — catches "Category", "L2 Categories", "Product Category", etc.
+// Strategy 2 (fallback): first row with 3+ text cells where row[0] isn't "TOTAL"
+function findHeaderRowIndex(rows) {
+  const limit = Math.min(15, rows.length);
+
+  // Strong signal: any cell contains "categor"
+  for (let i = 0; i < limit; i++) {
+    const hasCategory = rows[i].some(
+      (cell) => typeof cell === 'string' && cell.toLowerCase().includes('categor'),
+    );
+    if (hasCategory) return i;
+  }
+
+  // Fallback: first row with 3+ text cells that doesn't start with "TOTAL"
+  for (let i = 0; i < limit; i++) {
+    const first = String(rows[i][0] ?? '').trim().toUpperCase();
+    if (first === 'TOTAL') continue;
+    const textCells = rows[i].filter(
+      (cell) => typeof cell === 'string' && cell.trim().length > 1,
+    );
+    if (textCells.length >= 3) return i;
+  }
+
+  return 0;
+}
+
 // Match raw column headers from the file to our internal field names
 function mapColumns(headers) {
   const mapping = {};
@@ -30,24 +58,36 @@ function normalizeNumber(val) {
   return isNaN(num) ? null : num;
 }
 
+// Percentage fields stored as decimals (e.g. 0.936) need to be multiplied by 100.
+// We detect this by checking if the value is between -1 and 1 exclusive.
+const PERCENT_FIELDS = new Set(['mbGpMargin', 'mmsGpMargin', 'penetration', 'coverage', 'marketGrowth']);
+function normalizePercent(val) {
+  const n = normalizeNumber(val);
+  if (n == null) return null;
+  // Already looks like a percentage (e.g. 93.6, 45.2)
+  if (Math.abs(n) > 1) return n;
+  // Stored as decimal fraction (e.g. 0.936) — convert to percent
+  return n * 100;
+}
+
 // Exported so FileUpload can show the user which headers were detected
 export function rowsToRecords(rows) {
   if (!rows || rows.length < 2) return [];
 
-  const headers   = rows[0].map(String);
-  const colMap    = mapColumns(headers);
-  const headerIdx = {};
+  // Find the real header row — skips blank / totals rows at the top
+  const headerRowIdx = findHeaderRowIndex(rows);
+  const headers      = rows[headerRowIdx].map(String);
+  const colMap       = mapColumns(headers);
+  const headerIdx    = {};
   headers.forEach((h, i) => { headerIdx[h] = i; });
 
-  // If nothing mapped to "category", fall back to the first column.
-  // This handles PDFs where the column name is something unexpected
-  // like "Product Name", "SKU", "Item Description", etc.
+  // If nothing mapped to "category", fall back to the first column
   if (!colMap.category && headers.length > 0) {
     colMap.category = headers[0];
   }
 
   const records = rows
-    .slice(1)
+    .slice(headerRowIdx + 1)                          // data starts after the header row
     .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''))
     .map((row, idx) => {
       const record = { id: idx + 1 };
@@ -58,6 +98,9 @@ export function rowsToRecords(rows) {
 
         if (field === 'category') {
           record[field] = rawVal != null ? String(rawVal).trim() : '';
+        } else if (PERCENT_FIELDS.has(field)) {
+          // Handle percentages stored as decimals (0.936) or whole numbers (93.6)
+          record[field] = normalizePercent(rawVal);
         } else {
           record[field] = normalizeNumber(rawVal);
         }
@@ -82,7 +125,7 @@ export function rowsToRecords(rows) {
     })
     .filter((r) => r.category);
 
-  // Attach the detected headers so the UI can show them in error messages
+  // Attach detected header info so the UI can show it in error messages
   records._detectedHeaders = headers;
   records._mappedFields    = Object.keys(colMap);
   return records;
