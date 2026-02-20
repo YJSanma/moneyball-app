@@ -1,5 +1,5 @@
 // Data Table — dynamic columns matching the uploaded file, sortable/searchable
-// Includes a weighted scoring system that ranks categories and assigns computed tiers.
+// Tier/rank/score are computed in App.jsx and passed in via props so all views stay in sync.
 
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronDown, ChevronUp } from 'lucide-react';
@@ -7,117 +7,7 @@ import {
   formatCurrency, formatPercent, getTier,
   getPenCovQuadrant, getGrowthQuadrant,
 } from '../../utils/formatters';
-
-// ── Scoring weight column definitions ─────────────────────────────────────────
-// field: parsed record key (for sample / parsed data)
-// aliases: substrings to match against raw Excel header names (case-insensitive)
-const WEIGHT_COLUMNS = [
-  { id: 'penetration',      label: 'Penetration',           defaultWeight: 10, field: 'penetration',      aliases: ['penetration'] },
-  { id: 'coverage',         label: 'Coverage',              defaultWeight: 0,  field: 'coverage',         aliases: ['coverage'] },
-  { id: 'totalMarket',      label: 'Total Market $m',       defaultWeight: 10, field: null,               aliases: ['total market'] },
-  { id: 'marketGrowth',     label: 'Total Market Growth %', defaultWeight: 10, field: 'marketGrowth',     aliases: ['market growth', 'total market growth'] },
-  { id: 'marketShare',      label: 'MMS Market Share %',    defaultWeight: 10, field: 'marketShare',      aliases: ['mms market share', 'market share', 'mms share'] },
-  { id: 'mmsGpDollars',     label: 'MMS GP $m',             defaultWeight: 0,  field: 'mmsGpDollars',     aliases: ['mms gp'] },
-  { id: 'mmsGpMargin',      label: 'MMS GP %',              defaultWeight: 0,  field: 'mmsGpMargin',      aliases: ['mms gp %', 'mms gp margin'] },
-  { id: 'mmsGrowth',        label: 'MMS Growth',            defaultWeight: 10, field: null,               aliases: ['mms growth'] },
-  { id: 'revenue',          label: 'MB Sales $m',           defaultWeight: 5,  field: 'revenue',          aliases: ['mb sales'] },
-  { id: 'mbGpDollars',      label: 'MB GP $m',              defaultWeight: 10, field: 'mbGpDollars',      aliases: ['mb gp $m', 'mb gp dollars'] },
-  { id: 'mbGpMargin',       label: 'MB GP %',               defaultWeight: 10, field: 'mbGpMargin',       aliases: ['mb gp %', 'mb gp margin', 'mb margin'] },
-  { id: 'mbGrowth',         label: 'MB Growth',             defaultWeight: 10, field: null,               aliases: ['mb growth'] },
-  { id: 'mbOutpaceMms',     label: 'MB outpace MMS %',      defaultWeight: 5,  field: 'mbOutpaceMms',     aliases: ['mb outpace mms', 'mb outpace nb'] },
-  { id: 'mmsOutpaceMarket', label: 'MMS outpace Market %',  defaultWeight: 5,  field: 'mmsOutpaceMarket', aliases: ['mms outpace market', 'mms outpace'] },
-  { id: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      defaultWeight: 10, field: null,               aliases: ['mb gp higher than mms gp', 'mb vs mms gp', 'mb gp higher', 'mb higher than mms'] },
-];
-
-const DEFAULT_WEIGHTS = Object.fromEntries(WEIGHT_COLUMNS.map(c => [c.id, c.defaultWeight]));
-
-// Extract a numeric value from a data row for a given weight column
-function getWeightVal(row, wCol) {
-  // Try the parsed internal field first
-  if (wCol.field != null && row[wCol.field] != null) {
-    const n = Number(row[wCol.field]);
-    return isNaN(n) ? null : n;
-  }
-  // Search raw Excel headers by alias (uploaded files)
-  if (row._raw) {
-    const rawKeys = Object.keys(row._raw);
-    for (const alias of wCol.aliases) {
-      const hit = rawKeys.find(k => {
-        const kl = k.toLowerCase();
-        return kl.includes(alias) || alias.includes(kl);
-      });
-      if (hit != null) {
-        const n = Number(row._raw[hit]);
-        if (!isNaN(n)) return n;
-      }
-    }
-  }
-  return null;
-}
-
-// Rank all rows for each active weight column, compute a weighted average score,
-// assign overall rank and quartile-based tier.  Returns a new array of rows with
-// _score, _rank, and an overridden tier field.
-function computeScoring(allData, weights) {
-  if (!allData.length) return allData;
-
-  const activeCols = WEIGHT_COLUMNS.filter(c => (weights[c.id] ?? 0) > 0);
-  if (!activeCols.length) {
-    return allData.map(r => ({ ...r, _rank: null, _score: null }));
-  }
-
-  // Rank each column — higher value → rank 1 (best)
-  const rankMaps = {};
-  activeCols.forEach(wCol => {
-    const vals = allData
-      .map(row => ({ id: row.id, val: getWeightVal(row, wCol) }))
-      .filter(x => x.val != null)
-      .sort((a, b) => b.val - a.val);
-
-    const rMap = new Map();
-    let rank = 1;
-    vals.forEach((x, i) => {
-      if (i > 0 && vals[i].val < vals[i - 1].val) rank = i + 1;
-      rMap.set(x.id, rank);
-    });
-    rankMaps[wCol.id] = rMap;
-  });
-
-  // Weighted average score for each row (lower score = better)
-  const scored = allData.map(row => {
-    let weightedSum = 0;
-    let usedW = 0;
-    activeCols.forEach(wCol => {
-      const w = weights[wCol.id] ?? 0;
-      const rank = rankMaps[wCol.id]?.get(row.id);
-      if (rank != null) {
-        weightedSum += rank * w;
-        usedW += w;
-      }
-    });
-    return { ...row, _score: usedW > 0 ? weightedSum / usedW : null };
-  });
-
-  // Overall rank and quartile tier
-  const withScores = scored.filter(r => r._score != null).sort((a, b) => a._score - b._score);
-  const n = withScores.length;
-  const rankMap = new Map();
-  const tierMap = new Map();
-  withScores.forEach((r, i) => {
-    rankMap.set(r.id, i + 1);
-    const tier =
-      i < Math.ceil(n * 0.25) ? 1 :
-      i < Math.ceil(n * 0.50) ? 2 :
-      i < Math.ceil(n * 0.75) ? 3 : 4;
-    tierMap.set(r.id, tier);
-  });
-
-  return scored.map(row => ({
-    ...row,
-    _rank: rankMap.get(row.id) ?? null,
-    tier:  tierMap.get(row.id) ?? row.tier,   // override with computed tier
-  }));
-}
+import { WEIGHT_COLUMNS, DEFAULT_WEIGHTS } from '../../utils/scoring';
 
 // ── Static columns used when there is no raw Excel data (sample data) ─────────
 const STATIC_COLUMNS = [
@@ -277,12 +167,12 @@ function exportToCsv(rows, columns) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function DataTable({ data }) {
+// data already contains _rank, _score, and overridden tier from App.jsx scoring
+export default function DataTable({ data, weights, setWeights }) {
   const [search,      setSearch]      = useState('');
   const [tierFilter,  setTierFilter]  = useState('all');
   const [sortCol,     setSortCol]     = useState(null);
-  const [sortDir,     setSortDir]     = useState('asc');       // rank col → asc by default
-  const [weights,     setWeights]     = useState(DEFAULT_WEIGHTS);
+  const [sortDir,     setSortDir]     = useState('asc');
   const [showWeights, setShowWeights] = useState(false);
 
   // Refs for synchronized top scrollbar
@@ -301,9 +191,6 @@ export default function DataTable({ data }) {
     }
     return STATIC_COLUMNS;
   }, [isDynamic, data]);
-
-  // Apply weighted scoring to full dataset
-  const scoredData = useMemo(() => computeScoring(data, weights), [data, weights]);
 
   // Inject Rank (#) and Score columns around the Tier column
   const displayColumns = useMemo(() => {
@@ -363,12 +250,12 @@ export default function DataTable({ data }) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return scoredData.filter((d) => {
+    return data.filter((d) => {
       const matchSearch = !q || (d.category || '').toLowerCase().includes(q);
       const matchTier   = tierFilter === 'all' || String(d.tier) === tierFilter;
       return matchSearch && matchTier;
     });
-  }, [scoredData, search, tierFilter]);
+  }, [data, search, tierFilter]);
 
   const sorted = useMemo(() => {
     if (!sortCol) return filtered;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   BarChart2, ScatterChart, Map, Table2,
   Upload, ChevronRight, TrendingUp, Database, X, Menu,
@@ -10,6 +10,7 @@ import GPRanking       from './components/views/GPRanking';
 import DataTable       from './components/views/DataTable';
 import { SAMPLE_DATA }   from './utils/sampleData';
 import { formatCurrency, formatPercent, getTier, TIER_CONFIG } from './utils/formatters';
+import { computeScoring, DEFAULT_WEIGHTS } from './utils/scoring';
 
 const VIEWS = [
   { id: 'portfolio', label: 'Coverage and Penetration', shortLabel: 'Coverage', icon: Map,          component: PortfolioMap    },
@@ -24,6 +25,10 @@ export default function App() {
   const [activeView,     setActiveView]     = useState('portfolio');
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [weights,        setWeights]        = useState(DEFAULT_WEIGHTS);
+
+  // Apply weighted scoring once; all views receive the same scored data with overridden tiers
+  const scoredData = useMemo(() => computeScoring(data, weights), [data, weights]);
 
   const handleDataLoaded = (rows, source) => {
     setData(rows);
@@ -39,16 +44,14 @@ export default function App() {
     setActiveView('portfolio');
   };
 
-  // KPI calculations
-  // revenue    = MB Sales $m column (uploaded data)
-  // mbGpDollars = MB GP $m column (uploaded data)
-  const totalMbSales = data?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
-  const totalMbGP    = data?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
-  const withMargin = data?.filter((d) => d.mbGpMargin != null) ?? [];
-  const avgMbMargin = withMargin.length
+  // KPI calculations — use scoredData so tier counts reflect computed tiers
+  const totalMbSales = scoredData?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
+  const totalMbGP    = scoredData?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
+  const withMargin   = scoredData?.filter((d) => d.mbGpMargin != null) ?? [];
+  const avgMbMargin  = withMargin.length
     ? withMargin.reduce((s, d) => s + d.mbGpMargin, 0) / withMargin.length
     : null;
-  const tier1Count = data?.filter((d) => d.tier === 1).length ?? 0;
+  const tier1Count = scoredData?.filter((d) => d.tier === 1).length ?? 0;
 
   const ActiveComponent = VIEWS.find((v) => v.id === activeView)?.component;
 
@@ -246,11 +249,11 @@ export default function App() {
                 sub="Invest & Grow priority"      color="#d97706" bg="#fffbeb" />
             </div>
 
-            {/* Tier breakdown pills */}
+            {/* Tier breakdown pills — reflect computed tiers from scoring */}
             <div className="flex flex-wrap gap-2 mb-5">
               {[1, 2, 3, 4].map((tier) => {
                 const t     = getTier(tier);
-                const count = data.filter((d) => d.tier === tier).length;
+                const count = scoredData.filter((d) => d.tier === tier).length;
                 return (
                   <div key={tier}
                     className="flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium border"
@@ -264,8 +267,12 @@ export default function App() {
               })}
             </div>
 
-            {/* Active view */}
-            {ActiveComponent && <ActiveComponent data={data} />}
+            {/* Active view — all views receive the same scored data with overridden tiers */}
+            {ActiveComponent && (
+              activeView === 'table'
+                ? <DataTable data={scoredData} weights={weights} setWeights={setWeights} />
+                : <ActiveComponent data={scoredData} />
+            )}
           </>
         )}
       </main>
