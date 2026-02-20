@@ -27,8 +27,14 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weights,        setWeights]        = useState(DEFAULT_WEIGHTS);
 
-  // Apply weighted scoring once; all views receive the same scored data with overridden tiers
-  const scoredData = useMemo(() => computeScoring(data, weights), [data, weights]);
+  // Apply weighted scoring once; all views receive the same scored data with overridden tiers.
+  // Re-attach _detectedHeaders from the original array — computeScoring returns a new array
+  // so array-level properties like _detectedHeaders would otherwise be lost.
+  const scoredData = useMemo(() => {
+    const result = computeScoring(data, weights);
+    if (result && data?._detectedHeaders) result._detectedHeaders = data._detectedHeaders;
+    return result;
+  }, [data, weights]);
 
   const handleDataLoaded = (rows, source) => {
     setData(rows);
