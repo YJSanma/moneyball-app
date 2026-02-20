@@ -86,6 +86,13 @@ export function rowsToRecords(rows) {
     colMap.category = headers[0];
   }
 
+  // Detect dollar columns whose header ends with "$m" or "$ m" (values in millions)
+  // e.g. "MB GP $m", "MMS GP $m", "MB Sales $m" — multiply by 1,000,000
+  const millionFields = new Set();
+  for (const [field, originalHeader] of Object.entries(colMap)) {
+    if (/\$\s*m\b/i.test(originalHeader)) millionFields.add(field);
+  }
+
   const records = rows
     .slice(headerRowIdx + 1)                          // data starts after the header row
     .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''))
@@ -99,10 +106,13 @@ export function rowsToRecords(rows) {
         if (field === 'category') {
           record[field] = rawVal != null ? String(rawVal).trim() : '';
         } else if (PERCENT_FIELDS.has(field)) {
-          // Handle percentages stored as decimals (0.936) or whole numbers (93.6)
+          // Handle percentages stored as decimals (0.58) or whole numbers (58)
           record[field] = normalizePercent(rawVal);
         } else {
-          record[field] = normalizeNumber(rawVal);
+          let n = normalizeNumber(rawVal);
+          // Scale up values in millions (header contains "$m")
+          if (n != null && millionFields.has(field)) n *= 1_000_000;
+          record[field] = n;
         }
       }
 
@@ -133,6 +143,9 @@ export function rowsToRecords(rows) {
 
 // --- File type parsers ---
 
+// Sheets to try in priority order — use the first one that exists
+const PREFERRED_SHEETS = ['FinalVercel', 'Final', 'Data', 'Categories', 'Sheet1'];
+
 export async function parseExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -140,8 +153,14 @@ export async function parseExcel(file) {
       try {
         const data     = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-        const rows     = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+        // Pick the best sheet: check preferred names first, then fall back to sheet 1
+        const sheetName =
+          PREFERRED_SHEETS.find((name) => workbook.SheetNames.includes(name)) ??
+          workbook.SheetNames[0];
+
+        const sheet = workbook.Sheets[sheetName];
+        const rows  = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
         resolve(rowsToRecords(rows));
       } catch (err) {
         reject(new Error('Failed to parse Excel file: ' + err.message));
