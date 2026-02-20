@@ -12,16 +12,16 @@ import { SAMPLE_DATA }   from './utils/sampleData';
 import { formatCurrency, formatPercent, getTier, TIER_CONFIG } from './utils/formatters';
 
 const VIEWS = [
-  { id: 'strategic', label: 'Strategic Matrix', shortLabel: 'Strategic', icon: ScatterChart, component: StrategicMatrix },
-  { id: 'portfolio', label: 'Portfolio Map',    shortLabel: 'Portfolio', icon: Map,          component: PortfolioMap    },
-  { id: 'gp',        label: 'GP Ranking',       shortLabel: 'GP Rank',   icon: BarChart2,    component: GPRanking       },
-  { id: 'table',     label: 'Data Table',       shortLabel: 'Table',     icon: Table2,       component: DataTable       },
+  { id: 'portfolio', label: 'Coverage and Penetration', shortLabel: 'Coverage', icon: Map,          component: PortfolioMap    },
+  { id: 'strategic', label: 'Growth Assessment',        shortLabel: 'Growth',   icon: ScatterChart, component: StrategicMatrix },
+  { id: 'gp',        label: 'GP Ranking',               shortLabel: 'GP Rank',  icon: BarChart2,    component: GPRanking       },
+  { id: 'table',     label: 'Data Table',               shortLabel: 'Table',    icon: Table2,       component: DataTable       },
 ];
 
 export default function App() {
   const [data,           setData]           = useState(null);
   const [dataSource,     setDataSource]     = useState(null);
-  const [activeView,     setActiveView]     = useState('strategic');
+  const [activeView,     setActiveView]     = useState('portfolio');
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -29,19 +29,20 @@ export default function App() {
     setData(rows);
     setDataSource(source);
     setShowUpload(false);
-    setActiveView('strategic');
+    setActiveView('portfolio');
   };
 
   const handleLoadSample = () => {
     setData(SAMPLE_DATA);
     setDataSource('Sample Data — 57 L2 Categories');
     setShowUpload(false);
-    setActiveView('strategic');
+    setActiveView('portfolio');
   };
 
   // KPI calculations
-  const totalMbGP  = data?.reduce((s, d) => s + (d.mbGpDollars  || 0), 0) ?? 0;
-  const totalMmsGP = data?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalMbSales = data?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
+  const totalMbGP    = data?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
+  const totalMmsGP   = data?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
   const withMargin = data?.filter((d) => d.mbGpMargin != null) ?? [];
   const avgMbMargin = withMargin.length
     ? withMargin.reduce((s, d) => s + d.mbGpMargin, 0) / withMargin.length
@@ -233,7 +234,9 @@ export default function App() {
         ) : (
           <>
             {/* KPI bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+              <KPICard label="Total MB Sales"  value={totalMbSales ? formatCurrency(totalMbSales, true) : '—'}
+                sub="MB net sales"               color="#0891b2" bg="#ecfeff" />
               <KPICard label="Total MB GP$"    value={formatCurrency(totalMbGP, true)}
                 sub={`${data.length} categories`} color="#0066CC" bg="#e6f0ff" />
               <KPICard label="Total MMS GP$"   value={formatCurrency(totalMmsGP, true)}
