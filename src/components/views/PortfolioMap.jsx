@@ -264,7 +264,7 @@ export default function PortfolioMap({ data }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
             <XAxis
-              type="number" dataKey="penetration" height={30}
+              type="number" dataKey="penetration" height={30} allowDataOverflow
               domain={activeDomain.x} ticks={activeXTicks}
               tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}
@@ -273,7 +273,7 @@ export default function PortfolioMap({ data }) {
                 style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
             </XAxis>
             <YAxis
-              type="number" dataKey="coverage" width={55}
+              type="number" dataKey="coverage" width={55} allowDataOverflow
               domain={activeDomain.y} ticks={activeYTicks}
               tickFormatter={(v) => `${v}%`}
               tick={{ fontSize: 12, fill: '#64748b' }}

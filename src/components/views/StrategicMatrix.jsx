@@ -250,13 +250,13 @@ export default function StrategicMatrix({ data }) {
 
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
-              <XAxis type="number" dataKey="_xPlot" height={30}
+              <XAxis type="number" dataKey="_xPlot" height={30} allowDataOverflow
                 domain={activeDomain.x} ticks={activeXTicks}
                 tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MB Outpace NB Growth" position="insideBottom" offset={-25}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </XAxis>
-              <YAxis type="number" dataKey="_yPlot" width={60}
+              <YAxis type="number" dataKey="_yPlot" width={60} allowDataOverflow
                 domain={activeDomain.y} ticks={activeYTicks}
                 tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
                 <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
