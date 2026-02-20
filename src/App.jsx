@@ -15,7 +15,7 @@ import { computeScoring, DEFAULT_WEIGHTS } from './utils/scoring';
 const VIEWS = [
   { id: 'portfolio', label: 'Coverage and Penetration', shortLabel: 'Coverage', icon: Map,          component: PortfolioMap    },
   { id: 'strategic', label: 'Growth Assessment',        shortLabel: 'Growth',   icon: ScatterChart, component: StrategicMatrix },
-  { id: 'gp',        label: 'GP Ranking',               shortLabel: 'GP Rank',  icon: BarChart2,    component: GPRanking       },
+  { id: 'gp',        label: 'Visualization',             shortLabel: 'Viz',      icon: BarChart2,    component: GPRanking       },
   { id: 'table',     label: 'Data Table',               shortLabel: 'Table',    icon: Table2,       component: DataTable       },
 ];
 
