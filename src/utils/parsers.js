@@ -131,12 +131,23 @@ export function rowsToRecords(rows) {
         record.tier = 3;
       }
 
+      // Store original Excel values by header name so DataTable can show all columns
+      record._raw = {};
+      headers.forEach((h, i) => {
+        const label = h?.trim();
+        if (!label) return;
+        const v = row[i];
+        if (v !== null && v !== undefined && v !== '') {
+          record._raw[label] = v;
+        }
+      });
+
       return record;
     })
     .filter((r) => r.category);
 
-  // Attach detected header info so the UI can show it in error messages
-  records._detectedHeaders = headers;
+  // Attach detected header info (clean — no empty strings)
+  records._detectedHeaders = headers.map((h) => h?.trim()).filter(Boolean);
   records._mappedFields    = Object.keys(colMap);
   return records;
 }
