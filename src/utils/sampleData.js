@@ -89,6 +89,8 @@ export const EXPECTED_COLUMNS = {
                      'account penetration', 'acct pen', '% penetration'],
   coverage:         ['coverage', 'coverage %', 'cov %', 'cov',
                      'distribution coverage', 'distribution', 'dist coverage', '% coverage'],
+  totalMarket:      ['total market $m', 'total market size $m', 'total market', 'market size $m',
+                     'market size', 'tam $m', 'tam', 'addressable market $m', 'addressable market'],
   marketGrowth:     ['total market growth %', 'total market growth', 'market growth %',
                      'market growth', 'growth rate', 'growth %', 'growth rate %',
                      'market growth rate', 'yoy growth', 'yoy %', 'growth'],

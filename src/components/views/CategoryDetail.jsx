@@ -247,7 +247,13 @@ export default function CategoryDetail({ category, allData, onBack }) {
             <div className="grid grid-cols-3 gap-3">
               <MetricTile
                 label="Total Market"
-                value={category.totalMarket != null ? `$${category.totalMarket}M` : '—'}
+                value={
+                  category.totalMarket != null
+                    ? category.totalMarket >= 1_000_000
+                      ? formatCurrency(category.totalMarket, true)   // uploaded: stored as raw dollars
+                      : `$${category.totalMarket}M`                  // sample: stored as millions
+                    : '—'
+                }
                 sub="addressable market size"
                 color="#0066CC" bg="#e6f0ff"
               />
