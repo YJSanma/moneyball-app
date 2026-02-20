@@ -3,7 +3,7 @@
 
 // Each entry maps a scoring dimension to a parsed field name and raw Excel header aliases.
 export const WEIGHT_COLUMNS = [
-  { id: 'penetration',      label: 'Penetration',           defaultWeight: 10, field: 'penetration',      aliases: ['penetration'] },
+  { id: 'penetration',      label: 'Penetration',           defaultWeight: 5,  field: 'penetration',      aliases: ['penetration'] },
   { id: 'coverage',         label: 'Coverage',              defaultWeight: 0,  field: 'coverage',         aliases: ['coverage'] },
   { id: 'totalMarket',      label: 'Total Market $m',       defaultWeight: 10, field: 'totalMarket',      aliases: ['total market'] },
   { id: 'marketGrowth',     label: 'Total Market Growth %', defaultWeight: 10, field: 'marketGrowth',     aliases: ['market growth', 'total market growth'] },
