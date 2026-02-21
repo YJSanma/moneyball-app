@@ -5,7 +5,6 @@ import { ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
   ResponsiveContainer, Tooltip as RechartsTooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
 } from 'recharts';
 import {
   formatCurrency, formatPercent, getTier,
@@ -158,6 +157,18 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
     ? getPenCovQuadrant(category.penetration, category.coverage, penThreshold, covThreshold) : null;
   const f2q = category.mbOutpaceMms != null && category.mmsOutpaceMarket != null
     ? getGrowthQuadrant(category.mbOutpaceMms, category.mmsOutpaceMarket) : null;
+  // MB GP% - NB GP% computed directly from margin fields (avoids relying on a potentially misaligned data column)
+  const mbVsNbGpDiff = category.mbGpMargin != null && category.mmsGpMargin != null
+    ? category.mbGpMargin - category.mmsGpMargin : null;
+
+  // NB Sales = Total Market × Market Share — normalise totalMarket to dollars first
+  // (sample data stores totalMarket in millions; uploaded data stores as actual dollars)
+  const totalMarketDollars = category.totalMarket != null
+    ? (category.totalMarket >= 1_000_000 ? category.totalMarket : category.totalMarket * 1_000_000)
+    : null;
+  const nbSalesDollars = totalMarketDollars != null && category.marketShare != null
+    ? totalMarketDollars * (category.marketShare / 100) : null;
+
   // Radar chart — 6 dimensions normalised within the portfolio
   const radarDimensions = [
     { key: 'mbGpMargin',   label: 'MB Margin'   },
@@ -175,12 +186,6 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
     const score = Math.round(normalize(category[key], min, max));
     return { subject: label, score, fullMark: 100 };
   });
-
-  // Bar chart — side-by-side MB vs MMS GP$
-  const gpComparisonData = [
-    { name: 'MB GP$',  value: category.mbGpDollars  ?? 0, fill: '#0066CC' },
-    { name: 'NB GP$',  value: category.mmsGpDollars ?? 0, fill: '#059669' },
-  ];
 
   // Portfolio rank context
   const totalCategories = allData.length;
@@ -276,35 +281,18 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 color="#059669" bg="#ecfdf5"
               />
               <MetricTile
+                label="NB Sales$"
+                value={formatCurrency(nbSalesDollars, true)}
+                sub="Total Market × Market Share"
+                color="#059669" bg="#ecfdf5"
+              />
+              <MetricTile
                 label="MB GP higher than NB GP"
-                value={formatPercent(category.mbVsMmsGp)}
-                sub="MB margin advantage"
+                value={formatPercent(mbVsNbGpDiff)}
+                sub="MB GP% − NB GP%"
                 color="#4f46e5" bg="#eef2ff"
               />
             </div>
-
-            {/* GP comparison bar chart */}
-            {(category.mbGpDollars != null || category.mmsGpDollars != null) && (
-              <div className="mt-4 h-24">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={gpComparisonData} layout="vertical"
-                    margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
-                    <XAxis type="number" hide />
-                    <YAxis type="category" dataKey="name" width={52} tick={{ fontSize: 11, fill: '#6b7280' }} />
-                    <RechartsTooltip
-                      formatter={(v) => formatCurrency(v, true)}
-                      contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                    />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
-                      {gpComparisonData.map((entry, i) => (
-                        <Cell key={i} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
           </Section>
 
           {/* Market Position */}
@@ -333,6 +321,12 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 label="MMS Market Share"
                 value={formatPercent(category.marketShare)}
                 color="#7c3aed" bg="#f5f3ff"
+              />
+              <MetricTile
+                label="NB Sales$"
+                value={formatCurrency(nbSalesDollars, true)}
+                sub="Total Market × Market Share"
+                color="#059669" bg="#ecfdf5"
               />
             </div>
           </Section>
