@@ -1,6 +1,7 @@
 // Category Detail page — shown when a user clicks a category in the Data Table.
 // Displays every metric for a single category, organized into sections with visual indicators.
 
+import { useMemo } from 'react';
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
@@ -10,6 +11,7 @@ import {
   formatCurrency, formatPercent, getTier,
   getPenCovQuadrant, getGrowthQuadrant,
 } from '../../utils/formatters';
+import { WEIGHT_COLUMNS, getWeightVal, DEFAULT_WEIGHTS } from '../../utils/scoring';
 
 // Normalize a value to 0–100 within the portfolio's min/max range
 function normalize(value, min, max) {
@@ -149,8 +151,41 @@ function RelativeBar({ label, score, color }) {
   );
 }
 
-export default function CategoryDetail({ category, allData, onBack, penThreshold = 25, covThreshold = 25 }) {
+export default function CategoryDetail({ category, allData, onBack, penThreshold = 25, covThreshold = 25, weights }) {
   const tier = getTier(category.tier);
+
+  // Per-dimension score breakdown — shows exactly why this category ranks where it does.
+  // For each active scoring dimension: value, portfolio rank (1=best), weight used.
+  const scoreBreakdown = useMemo(() => {
+    const w = weights ?? DEFAULT_WEIGHTS;
+    return WEIGHT_COLUMNS
+      .filter(wCol => (w[wCol.id] ?? 0) > 0)
+      .map(wCol => {
+        const weight = w[wCol.id];
+        const myVal  = getWeightVal(category, wCol);
+        const allVals = allData
+          .map(d => getWeightVal(d, wCol))
+          .filter(v => v != null)
+          .sort((a, b) => b - a); // descending: rank 1 = highest value
+
+        if (myVal == null || !allVals.length) {
+          return { label: wCol.label, value: null, rank: null, total: allVals.length, weight, normRank: 0 };
+        }
+
+        // Rank uses same tied-rank logic as computeScoring
+        let rank = 1;
+        for (let i = 0; i < allVals.length; i++) {
+          if (i > 0 && allVals[i] < allVals[i - 1]) rank = i + 1;
+          if (allVals[i] <= myVal) break;
+        }
+        // Normalise rank to 0-100 bar (100 = rank 1, 0 = last)
+        const normRank = allVals.length > 1
+          ? Math.round((1 - (rank - 1) / (allVals.length - 1)) * 100)
+          : 100;
+
+        return { label: wCol.label, value: myVal, rank, total: allVals.length, weight, normRank };
+      });
+  }, [category, allData, weights]);
 
   // Quadrant classifications (use the same thresholds as Page 1 and the Data Table)
   const f1q = category.penetration != null && category.coverage != null
@@ -426,9 +461,9 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
           {/* Relative Performance radar */}
           <Section title="Portfolio Relative Performance">
             <p className="text-xs text-gray-400 mb-3">
-              How this category ranks across key metrics within the portfolio (0 = lowest, 100 = highest).
+              6 key metrics normalised 0–100 within the portfolio. Full score breakdown below.
             </p>
-            <div className="h-52">
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} margin={{ top: 8, right: 16, bottom: 8, left: 16 }}>
                   <PolarGrid stroke="#e5e7eb" />
@@ -452,11 +487,34 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
               </ResponsiveContainer>
             </div>
 
-            {/* Bar breakdown */}
-            <div className="space-y-2 mt-2">
-              {relativePerf.map(({ label, score, color }) => (
-                <RelativeBar key={label} label={label} score={score} color={color} />
-              ))}
+            {/* Score breakdown — all active scoring dimensions with actual rank */}
+            <div className="mt-3 border-t border-gray-100 pt-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Score Breakdown — why this rank?
+              </p>
+              <p className="text-xs text-gray-400 mb-2">
+                Bar fills right = ranked 1st. #rank/total × weight shows each dimension's contribution.
+              </p>
+              <div className="space-y-1.5">
+                {scoreBreakdown.map(({ label, rank, total, weight, normRank }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <p className="text-xs text-gray-500 w-32 shrink-0 truncate">{label}</p>
+                    <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: rank != null ? `${normRank}%` : '0%',
+                          backgroundColor: normRank >= 66 ? '#059669' : normRank >= 33 ? '#d97706' : '#dc2626',
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs font-mono text-gray-700 w-12 text-right shrink-0">
+                      {rank != null ? `#${rank}/${total}` : '—'}
+                    </p>
+                    <p className="text-xs text-gray-400 w-6 text-right shrink-0">×{weight}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </Section>
 

@@ -317,6 +317,7 @@ export default function App() {
                   onBack={() => setSelectedCategory(null)}
                   penThreshold={penThreshold}
                   covThreshold={covThreshold}
+                  weights={weights}
                 />
               ) : activeView === 'table'
                 ? <DataTable
