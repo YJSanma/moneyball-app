@@ -150,12 +150,12 @@ function RelativeBar({ label, score, color }) {
   );
 }
 
-export default function CategoryDetail({ category, allData, onBack }) {
+export default function CategoryDetail({ category, allData, onBack, penThreshold = 25, covThreshold = 25 }) {
   const tier = getTier(category.tier);
 
-  // Quadrant classifications
+  // Quadrant classifications (use the same thresholds as Page 1 and the Data Table)
   const f1q = category.penetration != null && category.coverage != null
-    ? getPenCovQuadrant(category.penetration, category.coverage) : null;
+    ? getPenCovQuadrant(category.penetration, category.coverage, penThreshold, covThreshold) : null;
   const f2q = category.mbOutpaceMms != null && category.mmsOutpaceMarket != null
     ? getGrowthQuadrant(category.mbOutpaceMms, category.mmsOutpaceMarket) : null;
   // Radar chart — 6 dimensions normalised within the portfolio

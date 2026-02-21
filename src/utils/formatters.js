@@ -56,9 +56,9 @@ export function getQuadrant(marketGrowth, marketShare, avgGrowth = 5, avgShare =
 
 // --- Portfolio Map penetration/coverage quadrant labels ---
 
-export function getPenCovQuadrant(penetration, coverage) {
-  const highPen = penetration >= 25;
-  const highCov = coverage   >= 25;
+export function getPenCovQuadrant(penetration, coverage, penThreshold = 25, covThreshold = 25) {
+  const highPen = penetration >= penThreshold;
+  const highCov = coverage   >= covThreshold;
   if  (highPen &&  highCov) return { label: 'Assortment Leader',        color: '#0066CC', bg: '#dbeafe' };
   if  (highPen && !highCov) return { label: 'Selective Winner',         color: '#1d4ed8', bg: '#dbeafe' };
   if (!highPen &&  highCov) return { label: 'Reassessment',             color: '#3b82f6', bg: '#eff6ff' };

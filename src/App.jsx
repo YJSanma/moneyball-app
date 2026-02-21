@@ -29,6 +29,8 @@ export default function App() {
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weights,        setWeights]        = useState(DEFAULT_WEIGHTS);
+  const [penThreshold,   setPenThreshold]   = useState(25);
+  const [covThreshold,   setCovThreshold]   = useState(25);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Apply weighted scoring once; all views receive the same scored data with overridden tiers.
@@ -59,11 +61,30 @@ export default function App() {
   // KPI calculations — use scoredData so tier counts reflect computed tiers
   const totalMbSales = scoredData?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
   const totalMbGP    = scoredData?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
-  const withMargin   = scoredData?.filter((d) => d.mbGpMargin != null) ?? [];
-  const avgMbMargin  = withMargin.length
-    ? withMargin.reduce((s, d) => s + d.mbGpMargin, 0) / withMargin.length
-    : null;
-  const tier1Count = scoredData?.filter((d) => d.tier === 1).length ?? 0;
+
+  // Card 3: true portfolio GP% = total GP$ / total Sales$ (not an average of individual margins)
+  const portfolioMbGpPct = totalMbSales > 0 ? (totalMbGP / totalMbSales * 100) : null;
+
+  // NB GP%: reverse each row's GP$ and GP% to get NB Sales$, then compute portfolio-level %
+  const totalNbGp    = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalNbSales = scoredData?.reduce((s, d) => {
+    if (d.mmsGpDollars != null && d.mmsGpMargin != null && d.mmsGpMargin > 0)
+      return s + (d.mmsGpDollars / (d.mmsGpMargin / 100));
+    return s;
+  }, 0) ?? 0;
+  const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
+
+  // Card 4: penetration = total MB Sales$ / total Market$ (true market penetration rate)
+  // Sample data stores totalMarket in millions; uploaded data stores as actual dollars — normalise via threshold
+  const totalMarketDollars = scoredData?.reduce((s, d) => {
+    if (d.totalMarket == null) return s;
+    return s + (d.totalMarket >= 1_000_000 ? d.totalMarket : d.totalMarket * 1_000_000);
+  }, 0) ?? 0;
+  const portfolioPenetration = totalMarketDollars > 0 ? (totalMbSales / totalMarketDollars * 100) : null;
+
+  // Coverage: mean across all categories
+  const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
+  const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.coverage, 0) / withCov.length : null;
 
   const ActiveComponent = VIEWS.find((v) => v.id === activeView)?.component;
 
@@ -251,14 +272,22 @@ export default function App() {
           <>
             {/* KPI bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <KPICard label="Total MB Sales"  value={totalMbSales > 0 ? formatCurrency(totalMbSales, true) : '—'}
+              <KPICard label="Total MB Sales" value={totalMbSales > 0 ? formatCurrency(totalMbSales, true) : '—'}
                 sub={`${data.length} categories`} color="#0066CC" bg="#e6f0ff" />
-              <KPICard label="MB GP$"          value={formatCurrency(totalMbGP, true)}
-                sub="McKesson Brands GP"          color="#059669" bg="#ecfdf5" />
-              <KPICard label="Avg MB GP%"      value={avgMbMargin != null ? formatPercent(avgMbMargin) : '—'}
-                sub="Portfolio margin avg"        color="#7c3aed" bg="#f5f3ff" />
-              <KPICard label="Tier 1 Categories" value={String(tier1Count)}
-                sub="Invest & Grow priority"      color="#d97706" bg="#fffbeb" />
+              <KPICard label="MB GP$" value={formatCurrency(totalMbGP, true)}
+                sub="McKesson Brands GP"   color="#059669" bg="#ecfdf5" />
+              <DualKPICard
+                label="GP Margin"
+                label1="MB GP%" val1={portfolioMbGpPct != null ? formatPercent(portfolioMbGpPct) : '—'}
+                label2="NB GP%" val2={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
+                color="#7c3aed" bg="#f5f3ff"
+              />
+              <DualKPICard
+                label="Portfolio Reach"
+                label1="Penetration" val1={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
+                label2="Avg Coverage" val2={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
+                color="#d97706" bg="#fffbeb"
+              />
             </div>
 
             {/* Tier breakdown pills — reflect computed tiers from scoring */}
@@ -286,6 +315,8 @@ export default function App() {
                   category={selectedCategory}
                   allData={scoredData}
                   onBack={() => setSelectedCategory(null)}
+                  penThreshold={penThreshold}
+                  covThreshold={covThreshold}
                 />
               ) : activeView === 'table'
                 ? <DataTable
@@ -293,8 +324,18 @@ export default function App() {
                     weights={weights}
                     setWeights={setWeights}
                     onCategoryClick={setSelectedCategory}
+                    penThreshold={penThreshold}
+                    covThreshold={covThreshold}
                   />
-                : <ActiveComponent data={scoredData} />
+                : activeView === 'portfolio'
+                  ? <PortfolioMap
+                      data={scoredData}
+                      penThreshold={penThreshold}
+                      covThreshold={covThreshold}
+                      setPenThreshold={setPenThreshold}
+                      setCovThreshold={setCovThreshold}
+                    />
+                  : <ActiveComponent data={scoredData} />
             )}
           </>
         )}
@@ -322,6 +363,25 @@ function KPICard({ label, value, sub, color, bg }) {
       <p className="text-xs font-medium mb-1" style={{ color: color + 'aa' }}>{label}</p>
       <p className="text-xl font-bold" style={{ color }}>{value}</p>
       {sub && <p className="text-xs mt-0.5" style={{ color: color + '88' }}>{sub}</p>}
+    </div>
+  );
+}
+
+// Two side-by-side metrics in one card
+function DualKPICard({ label, val1, label1, val2, label2, color, bg }) {
+  return (
+    <div className="rounded-xl border p-4" style={{ backgroundColor: bg, borderColor: color + '30' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: color + 'aa' }}>{label}</p>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <p className="text-[10px] mb-0.5" style={{ color: color + '88' }}>{label1}</p>
+          <p className="text-xl font-bold" style={{ color }}>{val1}</p>
+        </div>
+        <div className="flex-1 border-l pl-3" style={{ borderColor: color + '30' }}>
+          <p className="text-[10px] mb-0.5" style={{ color: color + '88' }}>{label2}</p>
+          <p className="text-xl font-bold" style={{ color }}>{val2}</p>
+        </div>
+      </div>
     </div>
   );
 }

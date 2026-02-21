@@ -177,7 +177,7 @@ function exportToCsv(rows, columns) {
 // ── Main component ────────────────────────────────────────────────────────────
 // data already contains _rank, _score, and overridden tier from App.jsx scoring
 // onCategoryClick(row) — called when the user clicks a category name cell
-export default function DataTable({ data, weights, setWeights, onCategoryClick }) {
+export default function DataTable({ data, weights, setWeights, onCategoryClick, penThreshold = 25, covThreshold = 25 }) {
   const [search,      setSearch]      = useState('');
   const [tierFilter,  setTierFilter]  = useState('all');
   const [sortCol,     setSortCol]     = useState(null);
@@ -201,7 +201,8 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
     return STATIC_COLUMNS;
   }, [isDynamic, data]);
 
-  // Inject Rank (#) and Score columns around the Tier column
+  // Inject Rank (#) and Score columns around the Tier column.
+  // Also patch the F1Q compute so it reacts to threshold changes.
   const displayColumns = useMemo(() => {
     const rankCol  = { key: '__rank__',  label: '#',     align: 'center', special: 'rank'  };
     const scoreCol = { key: '__score__', label: 'Score', align: 'right',  special: 'score' };
@@ -212,8 +213,14 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
     } else {
       result.push(scoreCol);
     }
-    return [rankCol, ...result];
-  }, [columns]);
+    const allCols = [rankCol, ...result];
+    return allCols.map(col =>
+      col.key === '__f1q__'
+        ? { ...col, compute: (row) => row.penetration != null && row.coverage != null
+              ? getPenCovQuadrant(row.penetration, row.coverage, penThreshold, covThreshold) : null }
+        : col
+    );
+  }, [columns, penThreshold, covThreshold]);
 
   // Default sort on the rank column when columns change
   useEffect(() => {
@@ -368,6 +375,7 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
             <option value="2">Tier 2 — Grow Selectively</option>
             <option value="3">Tier 3 — Maintain</option>
             <option value="4">Tier 4 — Monitor</option>
+            <option value="5">Tier 5 — No MB Sales</option>
           </select>
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

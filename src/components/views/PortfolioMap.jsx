@@ -10,9 +10,6 @@ import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, getTier, getPenCovQuadrant } from '../../utils/formatters';
 
-const PEN_LINE = 25;
-const COV_LINE = 25;
-
 const LIGHT_BLUE = '#bfdbfe';
 const DARK_BLUE  = '#1d4ed8';
 
@@ -34,12 +31,12 @@ function makeTicks(lo, hi) {
   return t;
 }
 
-function CustomTooltip({ active, payload }) {
+function CustomTooltip({ active, payload, penThreshold = 25, covThreshold = 25 }) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
   const t = getTier(d.tier);
-  const q = getPenCovQuadrant(d.penetration, d.coverage);
+  const q = getPenCovQuadrant(d.penetration, d.coverage, penThreshold, covThreshold);
   return (
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm max-w-[220px]">
       <p className="font-semibold text-gray-900 mb-1">{d.category}</p>
@@ -73,7 +70,7 @@ function Row({ label, value }) {
   );
 }
 
-export default function PortfolioMap({ data }) {
+export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 25, setPenThreshold, setCovThreshold }) {
   const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4, 5]));
   const [search, setSearch] = useState('');
 
@@ -103,14 +100,14 @@ export default function PortfolioMap({ data }) {
   const quadrantCounts = useMemo(() => {
     const c = {};
     chartData.forEach((d) => {
-      const q = getPenCovQuadrant(d.penetration, d.coverage);
+      const q = getPenCovQuadrant(d.penetration, d.coverage, penThreshold, covThreshold);
       c[q.label] = (c[q.label] || 0) + 1;
     });
     return c;
-  }, [chartData]);
+  }, [chartData, penThreshold, covThreshold]);
 
   const tierCounts = useMemo(() => {
-    const c = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const c = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     data.forEach((d) => { if (d.tier) c[d.tier] = (c[d.tier] || 0) + 1; });
     return c;
   }, [data]);
@@ -208,6 +205,25 @@ export default function PortfolioMap({ data }) {
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
 
+        {/* Quadrant threshold controls */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 text-xs text-gray-500">
+          <span className="font-medium text-gray-600">Quadrant thresholds:</span>
+          <div className="flex items-center gap-1.5">
+            <span>Penetration ≥</span>
+            <input type="number" min="0" max="100" value={penThreshold}
+              onChange={e => setPenThreshold?.(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+              className={inputCls} />
+            <span>%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>Coverage ≥</span>
+            <input type="number" min="0" max="100" value={covThreshold}
+              onChange={e => setCovThreshold?.(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+              className={inputCls} />
+            <span>%</span>
+          </div>
+        </div>
+
         {/* Axis range inputs */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-gray-500">
           <span className="font-medium text-gray-600">Axis range:</span>
@@ -240,22 +256,22 @@ export default function PortfolioMap({ data }) {
           <ScatterChart margin={C_MARGIN}>
 
             {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
-            <ReferenceArea x1={0} x2={PEN_LINE} y1={COV_LINE} y2={100}
+            <ReferenceArea x1={0} x2={penThreshold} y1={covThreshold} y2={100}
               fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
               <Label value="Reassessment" position="insideTopLeft"
                 style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
             </ReferenceArea>
-            <ReferenceArea x1={PEN_LINE} x2={100} y1={COV_LINE} y2={100}
+            <ReferenceArea x1={penThreshold} x2={100} y1={covThreshold} y2={100}
               fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
               <Label value="Assortment Leader" position="insideTopRight"
                 style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
             </ReferenceArea>
-            <ReferenceArea x1={0} x2={PEN_LINE} y1={0} y2={COV_LINE}
+            <ReferenceArea x1={0} x2={penThreshold} y1={0} y2={covThreshold}
               fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
               <Label value="Untapped Potential" position="insideBottomLeft"
                 style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
             </ReferenceArea>
-            <ReferenceArea x1={PEN_LINE} x2={100} y1={0} y2={COV_LINE}
+            <ReferenceArea x1={penThreshold} x2={100} y1={0} y2={covThreshold}
               fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
               <Label value="Selective Winner" position="insideBottomRight"
                 style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
@@ -282,11 +298,11 @@ export default function PortfolioMap({ data }) {
                 style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
             </YAxis>
 
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip penThreshold={penThreshold} covThreshold={covThreshold} />} />
 
             {/* Dashed divider lines at the quadrant thresholds */}
-            <ReferenceLine x={PEN_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
-            <ReferenceLine y={COV_LINE} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+            <ReferenceLine x={penThreshold} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
+            <ReferenceLine y={covThreshold} stroke="#94a3b8" strokeDasharray="6 3" strokeWidth={1.5} />
 
             <Scatter
               data={chartData}
