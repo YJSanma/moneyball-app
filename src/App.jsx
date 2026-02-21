@@ -72,8 +72,8 @@ export default function App() {
     const mktDollars = d.totalMarket >= 1_000_000 ? d.totalMarket : d.totalMarket * 1_000_000;
     return s + mktDollars * (d.marketShare / 100);
   }, 0) ?? 0;
-  const totalNbSales   = Math.max(0, totalMmsSales - totalMbSales);
-  const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
+  const nbGpSales = Math.max(0, totalMmsSales - totalMbSales);
+  const portfolioNbGpPct = nbGpSales > 0 ? (totalNbGp / nbGpSales * 100) : null;
 
   // Card 4: penetration = total MB Sales / (total MB Sales + total NB Sales)
   // NB Sales comes from the "NB sales $" column in uploaded data; same $m normalisation as totalMarket
@@ -83,7 +83,9 @@ export default function App() {
     return s + val;
   }, 0) ?? 0;
   const mmsTotalSales = totalMbSales + totalNbSales;
-  const portfolioPenetration = mmsTotalSales > 0 ? (totalMbSales / mmsTotalSales * 100) : null;
+  // Show — if no NB Sales column uploaded yet (avoids showing 100%)
+  const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
+    ? (totalMbSales / mmsTotalSales * 100) : null;
 
   // Coverage KPI: mean of the coverage field across all categories
   const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
