@@ -536,16 +536,16 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
 
               <div className="border-t border-gray-100" />
 
-              {/* Framework 2 — MB outpace NB × NB outpace Non-PL market */}
+              {/* Framework 2 — MB outpace NB (X) × NB outpace Non-PL market (Y) */}
               <FrameworkDiagram
                 title="Framework 2 — Growth Dynamics"
-                yLabel="MB vs NB"
-                xLabel="NB vs Non-PL Market"
+                xLabel="MB vs NB"
+                yLabel="NB vs Market"
                 activeLabel={f2q?.label}
-                topLeft={{    label: 'McKesson Brands Champions', color: '#3b82f6', bg: '#eff6ff' }}
+                topLeft={{    label: 'Opportunity Gap',           color: '#3b82f6', bg: '#eff6ff' }}
                 topRight={{   label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' }}
                 bottomLeft={{  label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6' }}
-                bottomRight={{ label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff' }}
+                bottomRight={{ label: 'McKesson Brands Champions', color: '#3b82f6', bg: '#eff6ff' }}
               />
 
             </div>
