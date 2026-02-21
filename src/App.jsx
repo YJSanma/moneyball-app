@@ -372,8 +372,8 @@ export default function App() {
               <TripleKPICard
                 label="Total GP Margin"
                 label1="MB sell-side GP%" val1={portfolioMbGpPct != null ? formatPercent(portfolioMbGpPct) : '—'}
-                label2="NB GP%"           val2={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
-                label3="MB buy-side GP%"  val3={buySideGpPct      != null ? formatPercent(buySideGpPct)      : '—'}
+                label2="MB buy-side GP%"  val2={buySideGpPct      != null ? formatPercent(buySideGpPct)      : '—'}
+                label3="NB GP%"           val3={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
                 color="#7c3aed" bg="#f5f3ff"
               />
               <ReachKPICard
