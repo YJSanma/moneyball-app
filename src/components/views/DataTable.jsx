@@ -470,10 +470,12 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
+                    style={col.isCategory ? { boxShadow: '2px 0 5px rgba(0,0,0,0.06)' } : undefined}
                     className={`
                       px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide
                       cursor-pointer select-none hover:text-gray-800 transition-colors whitespace-nowrap
-                      bg-gray-50 border-b border-gray-200 sticky top-0 z-10
+                      bg-gray-50 border-b border-gray-200 sticky top-0
+                      ${col.isCategory ? 'left-0 z-30 border-r border-gray-200' : 'z-20'}
                       ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}
                     `}
                   >
@@ -499,10 +501,11 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
                   {displayColumns.map((col) => (
                     <td
                       key={col.key}
+                      style={col.isCategory ? { boxShadow: '2px 0 5px rgba(0,0,0,0.05)' } : undefined}
                       className={`
                         px-3 py-2.5 whitespace-nowrap
+                        ${col.isCategory ? 'sticky left-0 z-10 bg-white border-r border-gray-100 font-medium' : 'text-gray-600'}
                         ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}
-                        ${col.isCategory ? 'font-medium' : 'text-gray-600'}
                       `}
                     >
                       {col.isCategory ? (
@@ -528,10 +531,11 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
                     return (
                       <td
                         key={col.key}
+                        style={col.isCategory ? { boxShadow: '2px 0 5px rgba(0,0,0,0.05)' } : undefined}
                         className={`
                           px-3 py-2.5 whitespace-nowrap
+                          ${col.isCategory ? 'sticky left-0 z-10 bg-gray-50 border-r border-gray-200 text-gray-500 uppercase tracking-wide' : i === 0 ? 'text-gray-500' : 'text-gray-400'}
                           ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}
-                          ${i === 0 ? 'text-gray-500 uppercase tracking-wide' : 'text-gray-400'}
                         `}
                       >
                         {val?._badge ? <MarginBadge value={val.value} /> : val}
