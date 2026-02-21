@@ -201,8 +201,12 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
   const totalMarketDollars = category.totalMarket != null
     ? (category.totalMarket >= 1_000_000 ? category.totalMarket : category.totalMarket * 1_000_000)
     : null;
-  const nbSalesDollars = totalMarketDollars != null && category.marketShare != null
+  // MMS Sales = Total Market × MMS Market Share
+  const mmsSalesDollars = totalMarketDollars != null && category.marketShare != null
     ? totalMarketDollars * (category.marketShare / 100) : null;
+  // NB Sales = MMS Sales − MB Sales (NB = national/branded products sold through MMS)
+  const nbSalesDollars = mmsSalesDollars != null && category.revenue != null
+    ? Math.max(0, mmsSalesDollars - category.revenue) : null;
 
   // Radar chart — 6 dimensions normalised within the portfolio
   const radarDimensions = [
@@ -316,10 +320,16 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 color="#059669" bg="#ecfdf5"
               />
               <MetricTile
-                label="NB Sales$"
-                value={formatCurrency(nbSalesDollars, true)}
+                label="MMS Sales$"
+                value={formatCurrency(mmsSalesDollars, true)}
                 sub="Total Market × Market Share"
                 color="#059669" bg="#ecfdf5"
+              />
+              <MetricTile
+                label="NB Sales$"
+                value={formatCurrency(nbSalesDollars, true)}
+                sub="MMS Sales − MB Sales"
+                color="#0891b2" bg="#ecfeff"
               />
               <MetricTile
                 label="MB GP higher than NB GP"
@@ -358,8 +368,8 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 color="#7c3aed" bg="#f5f3ff"
               />
               <MetricTile
-                label="NB Sales$"
-                value={formatCurrency(nbSalesDollars, true)}
+                label="MMS Sales$"
+                value={formatCurrency(mmsSalesDollars, true)}
                 sub="Total Market × Market Share"
                 color="#059669" bg="#ecfdf5"
               />

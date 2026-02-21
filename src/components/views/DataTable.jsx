@@ -519,7 +519,7 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick, 
                       {col.isCategory ? (
                         <span
                           className="flex items-center gap-1"
-                          style={{ color: '#0066CC', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                          style={{ color: '#0066CC' }}
                         >
                           {renderCell(row, col)}
                           <ExternalLink size={11} style={{ color: '#0066CC', opacity: 0.5, flexShrink: 0 }} />

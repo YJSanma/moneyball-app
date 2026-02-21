@@ -65,13 +65,14 @@ export default function App() {
   // Card 3: true portfolio GP% = total GP$ / total Sales$ (not an average of individual margins)
   const portfolioMbGpPct = totalMbSales > 0 ? (totalMbGP / totalMbSales * 100) : null;
 
-  // NB GP%: reverse each row's GP$ and GP% to get NB Sales$, then compute portfolio-level %
-  const totalNbGp    = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
-  const totalNbSales = scoredData?.reduce((s, d) => {
-    if (d.mmsGpDollars != null && d.mmsGpMargin != null && d.mmsGpMargin > 0)
-      return s + (d.mmsGpDollars / (d.mmsGpMargin / 100));
-    return s;
+  // NB GP%: NB Sales = MMS Sales − MB Sales (MMS Sales = Total Market × Market Share)
+  const totalNbGp      = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalMmsSales  = scoredData?.reduce((s, d) => {
+    if (d.totalMarket == null || d.marketShare == null) return s;
+    const mktDollars = d.totalMarket >= 1_000_000 ? d.totalMarket : d.totalMarket * 1_000_000;
+    return s + mktDollars * (d.marketShare / 100);
   }, 0) ?? 0;
+  const totalNbSales   = Math.max(0, totalMmsSales - totalMbSales);
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
 
   // Card 4: penetration = total MB Sales$ / total Market$ (true market penetration rate)
