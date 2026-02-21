@@ -134,8 +134,12 @@ export default function App() {
   // Buy-side GP%: average of the "Buy Side %" column from _raw (display only, not in scoring)
   // Mirrors the same average the DataTable footer shows for that column.
   const buySideGpPct = useMemo(() => {
-    if (!scoredData?.length || !scoredData[0]?._raw) return null;
-    const key = Object.keys(scoredData[0]._raw).find(k => {
+    if (!scoredData?.length) return null;
+    // Use _detectedHeaders (all column names) rather than _raw keys on a single row,
+    // because the parser omits empty cells so a key may be missing from row 0's _raw.
+    const headers = scoredData._detectedHeaders
+      || (scoredData[0]?._raw ? Object.keys(scoredData[0]._raw) : []);
+    const key = headers.find(k => {
       const kl = k.toLowerCase();
       return kl.includes('buy') && kl.includes('side') && kl.includes('%');
     });
