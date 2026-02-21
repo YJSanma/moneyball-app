@@ -157,7 +157,27 @@ export function rowsToRecords(rows) {
 // Sheets to try in priority order — use the first one that exists
 const PREFERRED_SHEETS = ['FinalVercel', 'Final', 'Data', 'Categories', 'Sheet1'];
 
-export async function parseExcel(file) {
+// Returns just the list of sheet names from a workbook
+export async function getExcelSheetNames(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data     = new Uint8Array(e.target.result);
+        // Read without bookSheets option for maximum compatibility
+        const workbook = XLSX.read(data, { type: 'array' });
+        resolve(workbook.SheetNames);
+      } catch (err) {
+        reject(new Error('Failed to read Excel file: ' + err.message));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read Excel file'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// sheetName option lets the caller pick a specific tab; falls back to preferred list
+export async function parseExcel(file, { sheetName } = {}) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -165,12 +185,13 @@ export async function parseExcel(file) {
         const data     = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
 
-        // Pick the best sheet: check preferred names first, then fall back to sheet 1
-        const sheetName =
+        // Use caller-supplied sheet name if valid, otherwise fall back to preferred list
+        const selected =
+          (sheetName && workbook.SheetNames.includes(sheetName) ? sheetName : null) ??
           PREFERRED_SHEETS.find((name) => workbook.SheetNames.includes(name)) ??
           workbook.SheetNames[0];
 
-        const sheet = workbook.Sheets[sheetName];
+        const sheet = workbook.Sheets[selected];
         const rows  = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
         resolve(rowsToRecords(rows));
       } catch (err) {
@@ -273,7 +294,7 @@ export async function parseFile(file, options = {}) {
   const type = file.type.toLowerCase();
 
   if (ext === 'xlsx' || ext === 'xls' || type.includes('spreadsheet') || type.includes('excel')) {
-    return { data: await parseExcel(file), source: file.name };
+    return { data: await parseExcel(file, options), source: file.name };
   }
   if (ext === 'csv' || type.includes('csv')) {
     return { data: await parseCsv(file), source: file.name };

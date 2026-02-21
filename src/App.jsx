@@ -304,7 +304,12 @@ export default function App() {
       <footer className="border-t border-gray-200 bg-white mt-auto">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <p className="text-xs text-gray-400">Moneyball — McKesson Brands Category Prioritization</p>
-          <p className="text-xs text-gray-400">{new Date().getFullYear()}</p>
+          <p className="text-xs text-gray-400">
+            Built {new Date(__BUILD_TIME__).toLocaleString('en-AU', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+            })}
+          </p>
         </div>
       </footer>
     </div>

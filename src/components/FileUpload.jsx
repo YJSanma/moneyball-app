@@ -3,7 +3,7 @@ import {
   Upload, FileSpreadsheet, FileText, Image,
   AlertCircle, CheckCircle, X, FileSearch,
 } from 'lucide-react';
-import { parseFile } from '../utils/parsers';
+import { parseFile, getExcelSheetNames } from '../utils/parsers';
 
 const ACCEPTED = '.xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png';
 
@@ -34,6 +34,11 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
   const [pendingPdf,  setPendingPdf]  = useState(null);
   const [pdfStart,    setPdfStart]    = useState(1);
   const [pdfEnd,      setPdfEnd]      = useState(5);
+
+  // Excel staging: hold the file + sheet list until the user picks a tab
+  const [pendingExcel,   setPendingExcel]   = useState(null);
+  const [excelSheets,    setExcelSheets]    = useState([]);
+  const [selectedSheet,  setSelectedSheet]  = useState('');
 
   // Run the actual parse (used for non-PDF files immediately, PDF on button click)
   const runParse = useCallback(async (file, options = {}) => {
@@ -72,17 +77,48 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
     setLoading(false);
   }, [onDataLoaded]);
 
+  const isExcel = (file) => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    return ext === 'xlsx' || ext === 'xls';
+  };
+
   // When a file is selected or dropped
-  const handleFile = useCallback((file) => {
+  const handleFile = useCallback(async (file) => {
     setStatus(null);
     if (isPdf(file)) {
       // Stage the PDF and show the page range UI — don't parse yet
+      setPendingExcel(null);
       setPendingPdf(file);
       setPdfStart(1);
       setPdfEnd(5);
-    } else {
-      // Non-PDF files parse immediately
+    } else if (isExcel(file)) {
+      // Read sheet names; if there are multiple, let the user pick one
       setPendingPdf(null);
+      setPendingExcel(null);
+      setLoading(true);
+      try {
+        const sheets = await getExcelSheetNames(file);
+        if (sheets.length <= 1) {
+          // Single sheet — parse straight away (runParse manages loading state)
+          setLoading(false);
+          runParse(file);
+        } else {
+          // Multiple sheets — show the tab picker
+          const preferred = ['FinalVercel', 'Final', 'Data', 'Categories', 'Sheet1']
+            .find((s) => sheets.includes(s)) ?? sheets[0];
+          setExcelSheets(sheets);
+          setSelectedSheet(preferred);
+          setPendingExcel(file);
+          setLoading(false);
+        }
+      } catch (err) {
+        setStatus({ type: 'error', message: err.message });
+        setLoading(false);
+      }
+    } else {
+      // CSV / image / etc — parse immediately
+      setPendingPdf(null);
+      setPendingExcel(null);
       runParse(file);
     }
   }, [runParse]);
@@ -114,11 +150,22 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
     setStatus(null);
   };
 
+  const handleParseExcel = () => {
+    if (!pendingExcel) return;
+    runParse(pendingExcel, { sheetName: selectedSheet });
+    setPendingExcel(null);
+  };
+
+  const cancelExcel = () => {
+    setPendingExcel(null);
+    setStatus(null);
+  };
+
   return (
     <div className="space-y-3">
 
-      {/* Drop zone — hidden while loading or staging a PDF */}
-      {!pendingPdf && (
+      {/* Drop zone — hidden while staging a PDF or Excel sheet picker */}
+      {!pendingPdf && !pendingExcel && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
@@ -224,6 +271,65 @@ export default function FileUpload({ onDataLoaded, onLoadSample }) {
               <>
                 <FileSearch size={15} />
                 Parse pages {pdfStart}–{pdfEnd}
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Excel sheet picker — shown when the workbook has multiple tabs */}
+      {pendingExcel && (
+        <div className="bg-white border-2 border-blue-200 rounded-xl p-4 space-y-3">
+          {/* File name row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileSpreadsheet size={16} className="text-green-600" />
+              <span className="text-sm font-medium text-gray-800 truncate max-w-[220px]">
+                {pendingExcel.name}
+              </span>
+            </div>
+            <button onClick={cancelExcel} className="text-gray-400 hover:text-gray-600">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Sheet dropdown */}
+          <div>
+            <p className="text-xs font-semibold text-gray-700 mb-1">
+              Which tab contains your data?
+            </p>
+            <p className="text-xs text-gray-400 mb-3">
+              This workbook has {excelSheets.length} sheets. Pick the one with your category data.
+            </p>
+            <select
+              value={selectedSheet}
+              onChange={(e) => setSelectedSheet(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
+            >
+              {excelSheets.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Load button */}
+          <button
+            onClick={handleParseExcel}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg
+              text-sm font-semibold text-white transition-colors disabled:opacity-60"
+            style={{ backgroundColor: '#0066CC' }}
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Loading…
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet size={15} />
+                Load "{selectedSheet}"
               </>
             )}
           </button>
