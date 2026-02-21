@@ -29,8 +29,8 @@ export default function App() {
   const [showUpload,     setShowUpload]     = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weights,        setWeights]        = useState(DEFAULT_WEIGHTS);
-  const [penThreshold,   setPenThreshold]   = useState(5);
-  const [covThreshold,   setCovThreshold]   = useState(35);
+  const [penThreshold,   setPenThreshold]   = useState(25);
+  const [covThreshold,   setCovThreshold]   = useState(5);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Apply weighted scoring once; all views receive the same scored data with overridden tiers.
