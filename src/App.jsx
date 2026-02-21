@@ -135,13 +135,16 @@ export default function App() {
   // Mirrors the same average the DataTable footer shows for that column.
   const buySideGpPct = useMemo(() => {
     if (!scoredData?.length) return null;
-    // Use _detectedHeaders (all column names) rather than _raw keys on a single row,
-    // because the parser omits empty cells so a key may be missing from row 0's _raw.
-    const headers = scoredData._detectedHeaders
-      || (scoredData[0]?._raw ? Object.keys(scoredData[0]._raw) : []);
-    const key = headers.find(k => {
+    // Build a full key set from _detectedHeaders + every row's _raw keys,
+    // so we find the column even if some rows have empty values.
+    const allKeys = new Set([
+      ...(scoredData._detectedHeaders || []),
+      ...scoredData.flatMap(r => r._raw ? Object.keys(r._raw) : []),
+    ]);
+    // Match any header containing "buy" and "%" (covers "Buy Side %", "Buy-Side %", etc.)
+    const key = [...allKeys].find(k => {
       const kl = k.toLowerCase();
-      return kl.includes('buy') && kl.includes('side') && kl.includes('%');
+      return kl.includes('buy') && (kl.includes('%') || kl.includes('pct'));
     });
     if (!key) return null;
     const vals = scoredData
