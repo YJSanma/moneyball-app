@@ -1,4 +1,4 @@
-// Auto-generated from Moneyball 2025.xlsx — do not edit by hand
+// Auto-generated from Moneyball 2025.xlsx — AI summaries added by generateSummaries.mjs
 export const SAMPLE_DATA = [
   {
     "id": 1,
@@ -19,7 +19,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 22924
+    "nbSales": 22924,
+    "summary": {
+      "headline": "Zero MB sales in growing market with untapped potential.",
+      "pros": [
+        "Market growing at 10.3% annually",
+        "Untapped potential quadrant indicates opportunity",
+        "NB competitors earning 37.5% gross profit"
+      ],
+      "cons": [
+        "McKesson has zero sales and zero penetration",
+        "Low MMS market share at 0.9%",
+        "No MB growth data or competitive presence"
+      ]
+    }
   },
   {
     "id": 2,
@@ -40,7 +53,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.4,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": 11.14,
-    "nbSales": 24400896
+    "nbSales": 24400896,
+    "summary": {
+      "headline": "Strong margins and growth, but limited market opportunity constrains tier ranking.",
+      "pros": [
+        "MB outpacing NB growth by 11.4 percentage points significantly",
+        "43.4% gross profit margin substantially exceeds NB at 32.2%",
+        "8.1% MB growth outpaces market growth of 5.7%"
+      ],
+      "cons": [
+        "Very low coverage at 2.6% limits expansion potential",
+        "Only 59% penetration indicates significant untapped customer base",
+        "Small $34.6M sales base constrains overall revenue impact"
+      ]
+    }
   },
   {
     "id": 3,
@@ -61,7 +87,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 9.01,
     "mmsOutpaceMarket": -4.38,
     "mbVsMmsGp": 17.28,
-    "nbSales": 54392161
+    "nbSales": 54392161,
+    "summary": {
+      "headline": "Strong MB growth with massive untapped market opportunity despite low penetration.",
+      "pros": [
+        "MB outpacing NB by 9.0% with 8.1% growth rate",
+        "Superior 41.9% gross profit margin vs NB 24.6%",
+        "Large addressable market of $639.1M with only 20% penetration"
+      ],
+      "cons": [
+        "Very low coverage at 2.1% limits growth potential near-term",
+        "MB represents only 8.3% of total market share",
+        "Untapped potential requires significant investment to convert coverage"
+      ]
+    }
   },
   {
     "id": 4,
@@ -82,7 +121,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 0.88,
     "mbVsMmsGp": null,
-    "nbSales": 99749
+    "nbSales": 99749,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in declining market with dominant competitor.",
+      "pros": [
+        "Untapped potential with zero current penetration",
+        "MMS strong market position at 94.8% share",
+        "NB maintains healthy 27.3% gross margin"
+      ],
+      "cons": [
+        "Market declining sharply at -45.7% year-over-year",
+        "Zero McKesson Brands sales and presence",
+        "MMS dominance leaves minimal opportunity for MB"
+      ]
+    }
   },
   {
     "id": 5,
@@ -103,7 +155,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -5.84,
     "mmsOutpaceMarket": -1.62,
     "mbVsMmsGp": 15.9,
-    "nbSales": 43592735
+    "nbSales": 43592735,
+    "summary": {
+      "headline": "Strong margins and market growth mask lagging MB momentum and low penetration.",
+      "pros": [
+        "High gross profit margin (34.0%) vs NB (18.1%)",
+        "Large addressable market ($747.7M) with healthy growth (12.0%)",
+        "Untapped potential with only 10% penetration rate"
+      ],
+      "cons": [
+        "MB growth (4.2%) significantly trails market (12.0%)",
+        "Low coverage (1.9%) indicates limited customer reach",
+        "MB underperforming NB by -5.8% growth gap"
+      ]
+    }
   },
   {
     "id": 6,
@@ -124,7 +189,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": -16800
+    "nbSales": -16800,
+    "summary": {
+      "headline": "No McKesson brand sales; significant untapped market opportunity.",
+      "pros": [
+        "Zero cannibalization risk to existing portfolio",
+        "Greenfield opportunity for category expansion",
+        "High NB gross margin indicates viable market"
+      ],
+      "cons": [
+        "Requires investment to build brand presence",
+        "Unknown market size and growth trajectory",
+        "No established McKesson footprint or awareness"
+      ]
+    }
   },
   {
     "id": 7,
@@ -145,7 +223,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -11.23,
     "mmsOutpaceMarket": 0.39,
     "mbVsMmsGp": 5.88,
-    "nbSales": 3907857
+    "nbSales": 3907857,
+    "summary": {
+      "headline": "Selective winner with strong margins but declining sales requires urgent intervention.",
+      "pros": [
+        "Strong GP% advantage over NB at 38.8%",
+        "Solid market position with 11.2% MMS share",
+        "Established presence with 28% penetration"
+      ],
+      "cons": [
+        "Significant MB sales decline of -7.3% YoY",
+        "Underperforming NB by 11.2 percentage points",
+        "Low coverage at 3.5% limits growth potential"
+      ]
+    }
   },
   {
     "id": 8,
@@ -166,7 +257,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 6.36,
     "mmsOutpaceMarket": -2.73,
     "mbVsMmsGp": 16.11,
-    "nbSales": 30247227
+    "nbSales": 30247227,
+    "summary": {
+      "headline": "Strong MB growth and margin leadership, but limited market penetration opportunity.",
+      "pros": [
+        "MB outpacing NB growth by 6.4% significantly",
+        "Superior GP% advantage: 39.6% vs NB 23.5%",
+        "Assortment Leader with proven McKesson Champions status"
+      ],
+      "cons": [
+        "Low penetration at 44% limits expansion potential",
+        "Minimal coverage at 5.4% across customer base",
+        "Modest market growth of 3.4% constrains category"
+      ]
+    }
   },
   {
     "id": 9,
@@ -187,7 +291,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 47.64,
     "mmsOutpaceMarket": -10.13,
     "mbVsMmsGp": 35.32,
-    "nbSales": 88432981
+    "nbSales": 88432981,
+    "summary": {
+      "headline": "Zero MB sales in high-growth category with strong margin potential.",
+      "pros": [
+        "39.2% MB growth rate significantly outpaces NB growth",
+        "38.4% gross profit margin vastly exceeds NB at 3.1%",
+        "Large $241.3M market with only 0.1% MB coverage"
+      ],
+      "cons": [
+        "Currently zero McKesson Brands sales in category",
+        "Minimal market coverage despite strong MMS position",
+        "Must build distribution and brand presence from scratch"
+      ]
+    }
   },
   {
     "id": 10,
@@ -208,7 +325,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -7.66,
     "mbVsMmsGp": null,
-    "nbSales": 24606783
+    "nbSales": 24606783,
+    "summary": {
+      "headline": "Zero MB sales in growing market represents significant untapped opportunity.",
+      "pros": [
+        "Large $134.4M total market with 9.9% growth trajectory",
+        "Strong NB gross profit margin of 25.3% indicates category viability",
+        "Untapped Potential quadrant suggests room for MB market entry"
+      ],
+      "cons": [
+        "Zero MB sales and penetration indicate competitive disadvantage currently",
+        "MMS holds 13.5% share; establishing MB presence will be challenging",
+        "Regulatory complexity and established competitors may limit rapid MB growth"
+      ]
+    }
   },
   {
     "id": 11,
@@ -229,7 +359,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -2.16,
     "mmsOutpaceMarket": -13.09,
     "mbVsMmsGp": 8.93,
-    "nbSales": 18436214
+    "nbSales": 18436214,
+    "summary": {
+      "headline": "Tier 2: High-margin niche with significant untapped growth potential despite current headwinds.",
+      "pros": [
+        "Strong 21.5% gross profit margin versus 12.6% NB",
+        "Large addressable market at $152.7M with 12.7% growth",
+        "Untapped potential quadrant indicates expansion opportunities"
+      ],
+      "cons": [
+        "MB sales declining -6.9% while market grows 12.7%",
+        "Low penetration at 20% and coverage at 4.2%",
+        "Underperforming NB by -2.2% in growth dynamics"
+      ]
+    }
   },
   {
     "id": 12,
@@ -250,7 +393,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 1.3,
     "mmsOutpaceMarket": -1.78,
     "mbVsMmsGp": 14.24,
-    "nbSales": 91562712
+    "nbSales": 91562712,
+    "summary": {
+      "headline": "Tier 2: Strong margin performer with selective growth but limited market penetration.",
+      "pros": [
+        "Superior GP% advantage of 14.3 points vs NB",
+        "MB outpacing NB growth by 1.3 percentage points",
+        "McKesson Brands Champions status confirms competitive strength",
+        "Solid $42.6M sales base with healthy margins"
+      ],
+      "cons": [
+        "Low market penetration at 32% limits growth potential",
+        "Minimal coverage at 2.8% indicates narrow customer reach",
+        "MB growth of 2.0% below market growth of 3.9%",
+        "Selective Winner status suggests niche positioning constraints"
+      ]
+    }
   },
   {
     "id": 13,
@@ -271,7 +429,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 6.82,
     "mmsOutpaceMarket": -15.71,
     "mbVsMmsGp": 8.33,
-    "nbSales": 15696484
+    "nbSales": 15696484,
+    "summary": {
+      "headline": "High-margin MB champion with significant untapped market expansion opportunity.",
+      "pros": [
+        "Strong 24.6% MB gross profit margin vs 16.3% NB",
+        "MB outpacing NB growth by 6.8 percentage points",
+        "Only 15% penetration indicates substantial growth runway",
+        "Growing market at 10.7% provides tailwinds"
+      ],
+      "cons": [
+        "Low 2.5% coverage limits current revenue potential",
+        "Modest $2.8M MB sales despite market size",
+        "4.5% MB growth lags overall market momentum",
+        "MMS market share at 13.6% suggests competitive gaps"
+      ]
+    }
   },
   {
     "id": 14,
@@ -292,7 +465,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 5.37,
     "mmsOutpaceMarket": -6.1,
     "mbVsMmsGp": 8.47,
-    "nbSales": 153679586
+    "nbSales": 153679586,
+    "summary": {
+      "headline": "Tier 2: Strong growth leader with significant untapped market potential.",
+      "pros": [
+        "MB outpacing NB growth by 5.4 percentage points",
+        "Superior gross profit margin: 25.5% vs NB 17.1%",
+        "MB growth of 6.5% exceeds market growth of 5.2%"
+      ],
+      "cons": [
+        "Low penetration at 25% indicates limited customer base",
+        "Minimal coverage of 5.8% suggests distribution gaps",
+        "Large market share available: MMS 25.1% of $685.9M market"
+      ]
+    }
   },
   {
     "id": 15,
@@ -313,7 +499,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -7.66,
     "mbVsMmsGp": 1.2,
-    "nbSales": 221944870
+    "nbSales": 221944870,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in this category currently.",
+      "pros": [
+        "Massive market growth opportunity at 95.8% YoY",
+        "McKesson strong 80.4% market share position",
+        "Healthy NB gross margin of 98.8%"
+      ],
+      "cons": [
+        "Zero MB sales revenue generation to date",
+        "Minimal coverage at 0.6% despite market size",
+        "Untapped potential requires significant investment"
+      ]
+    }
   },
   {
     "id": 16,
@@ -334,7 +533,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -6.7,
     "mmsOutpaceMarket": -6.21,
     "mbVsMmsGp": 5.64,
-    "nbSales": 14352656
+    "nbSales": 14352656,
+    "summary": {
+      "headline": "Tier 2: Established category with margin strength but declining momentum.",
+      "pros": [
+        "Strong gross profit margin at 33.1% versus NB 27.5%",
+        "High penetration at 59% shows strong customer engagement",
+        "Sizable $20.7M sales base provides revenue foundation"
+      ],
+      "cons": [
+        "Negative 8.3% MB growth trend is concerning",
+        "Underperforming NB by 6.7 points indicates competitive pressure",
+        "Low 3.8% coverage limits expansion opportunity potential"
+      ]
+    }
   },
   {
     "id": 17,
@@ -355,7 +567,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 73576
+    "nbSales": 73576,
+    "summary": {
+      "headline": "No McKesson brand presence in modest, slow-growing market segment.",
+      "pros": [
+        "Untapped market opportunity with zero current penetration",
+        "Positive market growth trajectory at 1.7% annually",
+        "Strong NB gross profit margin of 23.6% demonstrates viability"
+      ],
+      "cons": [
+        "Extremely small total market size of only $0.6M",
+        "Zero McKesson sales and market share currently",
+        "Low market growth insufficient to justify major investment priority"
+      ]
+    }
   },
   {
     "id": 18,
@@ -376,7 +601,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 469.09,
     "mbVsMmsGp": null,
-    "nbSales": 3299938
+    "nbSales": 3299938,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales despite strong market opportunity.",
+      "pros": [
+        "Large addressable market at $24.8M with healthy 12.3% growth",
+        "Strong non-brand gross margin at 21.7% indicates category profitability",
+        "MMS holds 9.2% market share showing competitive positioning exists"
+      ],
+      "cons": [
+        "Zero MB sales and penetration indicates complete category absence",
+        "Untapped potential requires significant investment to build presence",
+        "No MB growth data limits ability to assess future opportunity"
+      ]
+    }
   },
   {
     "id": 19,
@@ -397,7 +635,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -16.1,
     "mmsOutpaceMarket": -9.14,
     "mbVsMmsGp": 13.84,
-    "nbSales": 54745106
+    "nbSales": 54745106,
+    "summary": {
+      "headline": "Strong margins offset declining sales in underpenetrated market opportunity.",
+      "pros": [
+        "High gross profit margin of 31.4% versus NB 17.6%",
+        "Massive market size at $377.8M with 11.2% growth",
+        "Low penetration (7%) and coverage (1.1%) indicate expansion room"
+      ],
+      "cons": [
+        "MB sales declining sharply at -12.3% year-over-year",
+        "Underperforming non-brand by 16.1 percentage points",
+        "Low coverage suggests weak customer adoption and relationships"
+      ]
+    }
   },
   {
     "id": 20,
@@ -418,7 +669,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -6.7,
     "mmsOutpaceMarket": -7.91,
     "mbVsMmsGp": 15.35,
-    "nbSales": 76732949
+    "nbSales": 76732949,
+    "summary": {
+      "headline": "Tier 2: High-margin niche with significant untapped growth potential despite current decline.",
+      "pros": [
+        "Strong 26% gross profit margin vs 10.7% NB",
+        "Large $256M market with 8.8% growth trajectory",
+        "Only 1% penetration indicates substantial expansion room"
+      ],
+      "cons": [
+        "MB sales declining -5.6% while market grows 8.8%",
+        "Underperforming NB by -6.7% in growth dynamics",
+        "Low 3.2% coverage limits revenue scaling opportunity"
+      ]
+    }
   },
   {
     "id": 21,
@@ -439,7 +703,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.61,
     "mmsOutpaceMarket": 1.13,
     "mbVsMmsGp": 21.4,
-    "nbSales": 240020627
+    "nbSales": 240020627,
+    "summary": {
+      "headline": "Tier 2: High-growth MB brand with significant untapped market expansion opportunity.",
+      "pros": [
+        "Exceptional MB growth at 21.3% versus market 10.7%",
+        "Strong gross profit margin advantage: 35.4% vs NB 14.0%",
+        "Strategy Star positioning with favorable NB growth dynamics"
+      ],
+      "cons": [
+        "Very low penetration at 3% indicates limited customer reach",
+        "Minimal coverage at 2.1% suggests distribution gaps exist",
+        "Untapped Potential quadrant means growth ceiling may be capped"
+      ]
+    }
   },
   {
     "id": 22,
@@ -460,7 +737,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 3.61,
     "mbVsMmsGp": null,
-    "nbSales": 189420990
+    "nbSales": 189420990,
+    "summary": {
+      "headline": "Zero MB sales in large market represents significant untapped opportunity.",
+      "pros": [
+        "Large $368.1M market with strong MMS presence",
+        "Untapped potential quadrant suggests growth runway",
+        "Established market with 55.8% MMS market share"
+      ],
+      "cons": [
+        "Negative market growth of -2.8% headwind",
+        "Zero MB penetration and coverage currently",
+        "Negative NB GP% indicates category margin pressure"
+      ]
+    }
   },
   {
     "id": 23,
@@ -481,7 +771,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.46,
     "mmsOutpaceMarket": -7.93,
     "mbVsMmsGp": -6.64,
-    "nbSales": 13250095
+    "nbSales": 13250095,
+    "summary": {
+      "headline": "Tier 1: Strong performer with market leadership and superior brand growth.",
+      "pros": [
+        "McKesson Brands significantly outpacing national brands growth",
+        "High penetration at 67% shows strong customer adoption",
+        "Market share leadership at 24.4% with healthy 10.2% growth"
+      ],
+      "cons": [
+        "Gross profit margin trails national brands by 6.6 points",
+        "Low coverage at 8.5% limits expansion opportunities",
+        "Significant gap between penetration and coverage suggests untapped potential"
+      ]
+    }
   },
   {
     "id": 24,
@@ -502,7 +805,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -41.49,
     "mmsOutpaceMarket": 2.21,
     "mbVsMmsGp": 9.77,
-    "nbSales": 856368731
+    "nbSales": 856368731,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales despite significant market opportunity.",
+      "pros": [
+        "Large market size at $1.3B with healthy 7.2% growth",
+        "Strong MMS market presence with 44.7% share indicates capability",
+        "High MB gross margin potential at 22.1% if launched"
+      ],
+      "cons": [
+        "Complete market absence: $0M MB sales, 0% penetration",
+        "MB underperforming NB by -41.5% points historically",
+        "Minimal store coverage at 0.3% limits category visibility"
+      ]
+    }
   },
   {
     "id": 25,
@@ -523,7 +839,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 7.27,
     "mmsOutpaceMarket": -3.33,
     "mbVsMmsGp": 14.58,
-    "nbSales": 17512210
+    "nbSales": 17512210,
+    "summary": {
+      "headline": "Strong MB performer with market leadership but limited growth headroom.",
+      "pros": [
+        "Leading MB growth outpacing NB by 7.3 percentage points",
+        "High penetration at 76% shows strong customer adoption",
+        "Superior GP margin of 46.2% vs NB at 31.6%"
+      ],
+      "cons": [
+        "Low coverage at 11.9% indicates limited SKU breadth",
+        "Modest market growth of 4.5% constrains expansion potential",
+        "High penetration suggests limited new customer acquisition room"
+      ]
+    }
   },
   {
     "id": 26,
@@ -544,7 +873,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -17.7,
     "mmsOutpaceMarket": 5.7,
     "mbVsMmsGp": 12.17,
-    "nbSales": 49631647
+    "nbSales": 49631647,
+    "summary": {
+      "headline": "Strong cash generator facing market headwinds; maintain but monitor decline.",
+      "pros": [
+        "Dominant market position with $281M sales and 85% penetration",
+        "Superior margin advantage: 36.2% MB vs 24.1% NB gross profit",
+        "Established category leadership despite challenging market conditions"
+      ],
+      "cons": [
+        "Steep -24.4% MB sales decline outpacing market deterioration",
+        "Low 9.4% coverage limits growth despite high penetration",
+        "Opportunity Gap signals NB growing faster; losing competitive ground"
+      ]
+    }
   },
   {
     "id": 27,
@@ -565,7 +907,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 12.53,
     "mmsOutpaceMarket": -7.7,
     "mbVsMmsGp": 14.52,
-    "nbSales": 20234647
+    "nbSales": 20234647,
+    "summary": {
+      "headline": "Strong MB growth and margins justify Tier 1 priority positioning.",
+      "pros": [
+        "MB growing 8.3% annually, outpacing NB by 12.5 points",
+        "Superior 41.5% GP% versus NB 27.0% demonstrates profitability",
+        "Assortment Leader with McKesson Champions status signals market strength"
+      ],
+      "cons": [
+        "Low 6.3% coverage limits market penetration opportunity upside",
+        "45% penetration leaves 55% customer adoption gap remaining",
+        "MMS 9.4% share indicates significant competitive market presence"
+      ]
+    }
   },
   {
     "id": 28,
@@ -586,7 +941,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -47.98,
     "mbVsMmsGp": null,
-    "nbSales": 134933
+    "nbSales": 134933,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales despite strong market growth opportunity.",
+      "pros": [
+        "Strong market growth at 21.0% indicates category momentum",
+        "Untapped potential with 0% penetration and no MB presence",
+        "Healthy NB gross profit margin of 26.9%"
+      ],
+      "cons": [
+        "No McKesson Brands sales or market presence currently",
+        "Small total market size of $0.9M limits opportunity scale",
+        "Competitors established with 8.4% MMS market share"
+      ]
+    }
   },
   {
     "id": 29,
@@ -607,7 +975,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 9.06,
     "mmsOutpaceMarket": -8.06,
     "mbVsMmsGp": 11.76,
-    "nbSales": 54564253
+    "nbSales": 54564253,
+    "summary": {
+      "headline": "Strong MB growth and margins warrant Tier 2 investment despite selective market penetration.",
+      "pros": [
+        "MB outpacing NB by 9.1% with 10.1% growth rate",
+        "Excellent GP% advantage: 38.3% MB vs 26.5% NB",
+        "McKesson Brands Champions status signals strong competitive position"
+      ],
+      "cons": [
+        "Low penetration at 33% limits growth ceiling significantly",
+        "Minimal coverage at 3.8% indicates sparse customer reach",
+        "Large market gap: $27M MB vs $544.7M total market"
+      ]
+    }
   },
   {
     "id": 30,
@@ -628,7 +1009,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 8.79,
     "mmsOutpaceMarket": -4.92,
     "mbVsMmsGp": 18.75,
-    "nbSales": 28677509
+    "nbSales": 28677509,
+    "summary": {
+      "headline": "Strong MB growth and margins justify Tier 1 priority despite coverage gaps.",
+      "pros": [
+        "MB growing 9.9% vs NB growth, significantly outpacing competition",
+        "38.0% GP% nearly double NB's 19.3%, high profitability",
+        "63% penetration shows strong customer adoption and loyalty"
+      ],
+      "cons": [
+        "14.5% coverage severely limits growth potential and revenue expansion",
+        "17.8% MMS market share leaves substantial competitive vulnerability",
+        "High penetration with low coverage suggests untapped customer base"
+      ]
+    }
   },
   {
     "id": 31,
@@ -649,7 +1043,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 6.07,
     "mmsOutpaceMarket": -2.27,
     "mbVsMmsGp": 7.53,
-    "nbSales": 212949153
+    "nbSales": 212949153,
+    "summary": {
+      "headline": "Strong growth momentum and margin advantage warrant Tier 1 investment priority.",
+      "pros": [
+        "MB outpacing NB growth by 6.1 percentage points significantly",
+        "23.4% gross profit margin substantially exceeds NB at 15.9%",
+        "10.5% MB growth in 6.7% total market demonstrates momentum"
+      ],
+      "cons": [
+        "24% penetration leaves 76% untapped market opportunity",
+        "5.8% coverage severely limits market reach and scale",
+        "30.2% MMS share suggests strong competitor presence limiting gains"
+      ]
+    }
   },
   {
     "id": 32,
@@ -670,7 +1077,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 15.37,
     "mmsOutpaceMarket": -2.22,
     "mbVsMmsGp": 15,
-    "nbSales": 674316258
+    "nbSales": 674316258,
+    "summary": {
+      "headline": "Tier 2: High-growth MB champion with significant untapped market expansion opportunity.",
+      "pros": [
+        "Strong MB growth at 16.4%, significantly outpacing NB growth",
+        "Excellent gross profit margin of 38.3% demonstrates pricing power",
+        "Untapped potential with only 9% penetration and 3.3% coverage",
+        "Large addressable market of $5.1B with healthy 6.4% growth"
+      ],
+      "cons": [
+        "Low market penetration at 9% indicates competitive or execution gaps",
+        "Minimal coverage at 3.3% limits revenue scaling opportunities",
+        "MMS market share of 8.8% lags total market size significantly",
+        "Heavy reliance on continued MB growth sustainability over time"
+      ]
+    }
   },
   {
     "id": 33,
@@ -691,7 +1113,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -2.15,
     "mmsOutpaceMarket": -1.25,
     "mbVsMmsGp": 21.39,
-    "nbSales": 104850014
+    "nbSales": 104850014,
+    "summary": {
+      "headline": "Strong margins with growth headwinds warrant monitored investment.",
+      "pros": [
+        "High GP% of 39.0% significantly outpaces NB at 17.6%",
+        "Large market of $3.6B presents substantial expansion opportunity",
+        "Low coverage at 1.2% indicates untapped account potential"
+      ],
+      "cons": [
+        "Negative MB growth of -2.7% trending away from market",
+        "Underperforming NB by 2.1% suggests competitive weakness",
+        "Low penetration at 16% with declining sales trajectory"
+      ]
+    }
   },
   {
     "id": 34,
@@ -712,7 +1147,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 12.78,
     "mbVsMmsGp": null,
-    "nbSales": 14342921
+    "nbSales": 14342921,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in declining market.",
+      "pros": [
+        "Large total market opportunity at $101.0M",
+        "Strong competitor presence shows market viability",
+        "Category exists with measurable demand"
+      ],
+      "cons": [
+        "Zero McKesson Brands sales and penetration",
+        "Market declining at -14.3% annually",
+        "Competitor (MMS) dominates with 33.9% share",
+        "No growth trajectory to build from",
+        "Negative market dynamics reduce entry attractiveness"
+      ]
+    }
   },
   {
     "id": 35,
@@ -733,7 +1183,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 3.28,
     "mbVsMmsGp": null,
-    "nbSales": 22553695
+    "nbSales": 22553695,
+    "summary": {
+      "headline": "Zero MB presence in growing market with strong MMS position.",
+      "pros": [
+        "Large $38.2M market with healthy 7.5% growth trajectory",
+        "MMS commands 45.5% market share, demonstrating category strength",
+        "Untapped potential indicates significant opportunity for MB entry"
+      ],
+      "cons": [
+        "Complete absence of MB sales and brand presence currently",
+        "NB competitors established with 18.9% gross profit margins",
+        "Zero penetration and coverage require substantial investment to compete"
+      ]
+    }
   },
   {
     "id": 36,
@@ -754,7 +1217,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -6.14,
     "mbVsMmsGp": null,
-    "nbSales": 513178
+    "nbSales": 513178,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in high-growth market opportunity",
+      "pros": [
+        "Large market size at $66.2M with strong 19.5% growth",
+        "Untapped potential quadrant suggests significant expansion opportunity",
+        "Competitive NB gross profit of 25.9% shows category viability"
+      ],
+      "cons": [
+        "No McKesson Brands sales or penetration in category",
+        "Low MMS market share at 0.5% indicates weak positioning",
+        "Requires substantial investment to enter and compete effectively"
+      ]
+    }
   },
   {
     "id": 37,
@@ -775,7 +1251,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -2.65,
     "mbVsMmsGp": null,
-    "nbSales": 3967878
+    "nbSales": 3967878,
+    "summary": {
+      "headline": "Zero MB presence in growing market represents significant untapped opportunity.",
+      "pros": [
+        "Large $73M market with healthy 3.9% growth trajectory",
+        "Untapped potential quadrant offers greenfield expansion opportunity",
+        "Competitor NB showing 24.2% gross margin demonstrates category profitability"
+      ],
+      "cons": [
+        "Complete market absence requires substantial infrastructure investment",
+        "MMS only 4.8% share suggests entrenched competitive dynamics",
+        "No historical MB data limits growth trajectory predictability"
+      ]
+    }
   },
   {
     "id": 38,
@@ -796,7 +1285,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -5.14,
     "mmsOutpaceMarket": 2.29,
     "mbVsMmsGp": 24.78,
-    "nbSales": 64851621
+    "nbSales": 64851621,
+    "summary": {
+      "headline": "Strong margins and market position offset by lagging growth and low coverage.",
+      "pros": [
+        "Market-leading 39.8% gross profit margin vs NB 15%",
+        "Assortment leader with strong brand penetration at 29%",
+        "Solid $26.2M sales base in growing 10.9% market"
+      ],
+      "cons": [
+        "MB growth 5.1pp below NB; losing competitive momentum",
+        "Coverage critically low at 6.8%; untapped distribution opportunity",
+        "Underperforming market share despite category growth tailwinds"
+      ]
+    }
   },
   {
     "id": 39,
@@ -817,7 +1319,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 2.61,
     "mbVsMmsGp": null,
-    "nbSales": 166311267
+    "nbSales": 166311267,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in large, stable market.",
+      "pros": [
+        "Large $614.4M market with established demand",
+        "Healthy 24% NB gross profit margin",
+        "MMS has strong 25.5% market share position"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration currently",
+        "No MB growth trajectory or competitive metrics",
+        "Requires significant investment to build presence"
+      ]
+    }
   },
   {
     "id": 40,
@@ -838,7 +1353,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -5.66,
     "mbVsMmsGp": null,
-    "nbSales": 4989906
+    "nbSales": 4989906,
+    "summary": {
+      "headline": "Zero MB presence in growing market represents significant untapped opportunity.",
+      "pros": [
+        "Large $13.6M total market with steady 1.8% growth",
+        "MMS holds strong 34.3% market share demonstrating category strength",
+        "Untapped Potential quadrant signals greenfield expansion opportunity"
+      ],
+      "cons": [
+        "Complete absence of MB sales indicates no established infrastructure",
+        "NB competitor maintains healthy 21.4% gross profit margins",
+        "Building from zero requires significant market development investment"
+      ]
+    }
   },
   {
     "id": 41,
@@ -859,7 +1387,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 4.87,
     "mmsOutpaceMarket": -8.57,
     "mbVsMmsGp": 10.41,
-    "nbSales": 23457720
+    "nbSales": 23457720,
+    "summary": {
+      "headline": "Strong margin leader with growth momentum despite low market penetration.",
+      "pros": [
+        "Superior GP% advantage: 34.5% vs NB 24.1%",
+        "MB outpacing NB growth by 4.9 percentage points",
+        "Large untapped market: 89% penetration opportunity",
+        "Solid MMS market share at 7.8%"
+      ],
+      "cons": [
+        "MB sales declining at -1.9% despite NB outperformance",
+        "Very low coverage at 1.6% limits growth scaling",
+        "Slowing market growth at 2.4% constrains expansion",
+        "Low absolute penetration at 11% indicates customer underutilization"
+      ]
+    }
   },
   {
     "id": 42,
@@ -880,7 +1423,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -2.16,
     "mbVsMmsGp": null,
-    "nbSales": 78516191
+    "nbSales": 78516191,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in large, stable market.",
+      "pros": [
+        "Large market size at $170.6M with stable growth",
+        "Strong MMS market share at 44% shows category strength",
+        "Untapped potential with zero MB penetration opportunity"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration indicate no current presence",
+        "Cannot assess MB growth or competitive dynamics without sales data",
+        "NB margin at 22.4% suggests profitability exists elsewhere"
+      ]
+    }
   },
   {
     "id": 43,
@@ -901,7 +1457,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 1.56,
     "mbVsMmsGp": null,
-    "nbSales": 164352908
+    "nbSales": 164352908,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in large immunoassay market.",
+      "pros": [
+        "Large market opportunity at $449.3M total addressable market",
+        "Healthy market growth at 2.4% year-over-year",
+        "Strong competitor presence shows viable market demand"
+      ],
+      "cons": [
+        "Zero McKesson Brands revenue and no market penetration",
+        "Competitor MMS holds 33.9% share; entry barriers exist",
+        "Comparable NB gross profit 23.5% sets high performance bar"
+      ]
+    }
   },
   {
     "id": 44,
@@ -922,7 +1491,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 0.97,
     "mmsOutpaceMarket": -0.42,
     "mbVsMmsGp": 16.17,
-    "nbSales": 264831928
+    "nbSales": 264831928,
+    "summary": {
+      "headline": "High-margin champion with massive untapped growth opportunity ahead.",
+      "pros": [
+        "Superior 41% gross profit margin versus 24.8% NB",
+        "Strong MB outpacing NB growth by 1.0 percentage point",
+        "Massive $557.6M untapped market opportunity remains"
+      ],
+      "cons": [
+        "Very low 5% penetration limits current revenue scale",
+        "Minimal 4.1% coverage means thin customer base",
+        "Market growth at 4% may limit expansion pace"
+      ]
+    }
   },
   {
     "id": 45,
@@ -943,7 +1525,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -5.21,
     "mbVsMmsGp": null,
-    "nbSales": 703160
+    "nbSales": 703160,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in declining market segment.",
+      "pros": [
+        "Untapped potential with $11.7M total market available",
+        "Competitor MMS holds only 4.9% market share",
+        "Non-brand gross profit of 35.4% shows category profitability"
+      ],
+      "cons": [
+        "Market declining at -5.2% annually; headwinds ahead",
+        "Zero MB penetration and coverage indicates no foothold",
+        "Zero MB sales and GP% shows complete absence"
+      ]
+    }
   },
   {
     "id": 46,
@@ -964,7 +1559,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -1.94,
     "mmsOutpaceMarket": 8.76,
     "mbVsMmsGp": 8.74,
-    "nbSales": 33933168
+    "nbSales": 33933168,
+    "summary": {
+      "headline": "Tier 2: Strong margins with significant untapped growth potential despite market headwinds.",
+      "pros": [
+        "Superior GP% of 44.6% versus NB at 35.9%",
+        "Low penetration (10%) indicates substantial expansion opportunity",
+        "MB growing despite negative market conditions (-2.7%)"
+      ],
+      "cons": [
+        "MB underperforming NB growth by 1.9 percentage points",
+        "Declining market (-2.7%) limits category tailwinds",
+        "Low coverage (2.0%) suggests limited customer reach"
+      ]
+    }
   },
   {
     "id": 47,
@@ -985,7 +1593,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 1.16,
     "mbVsMmsGp": null,
-    "nbSales": 4095586
+    "nbSales": 4095586,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales despite $14.7M growing market.",
+      "pros": [
+        "Large market size at $14.7M with healthy 12.8% growth",
+        "MMS holds 19.4% market share showing category viability",
+        "Untapped potential with zero MB penetration and coverage"
+      ],
+      "cons": [
+        "Zero MB sales and zero gross profit currently",
+        "Complete market absence requires significant investment to enter",
+        "NB competitors established with 21.2% GP margin advantage"
+      ]
+    }
   },
   {
     "id": 48,
@@ -1006,7 +1627,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 2.15,
     "mbVsMmsGp": null,
-    "nbSales": 4171127
+    "nbSales": 4171127,
+    "summary": {
+      "headline": "Tier 5: Zero McKesson Brands sales in growing market segment.",
+      "pros": [
+        "Large market opportunity at $13.1M total size",
+        "Moderate market growth at 1.6% provides expansion runway",
+        "MMS holds 30.3% share showing category viability"
+      ],
+      "cons": [
+        "No McKesson Brands presence or sales currently",
+        "Untapped potential requires significant market entry investment",
+        "Competitive MMS position limits easy market penetration"
+      ]
+    }
   },
   {
     "id": 49,
@@ -1027,7 +1661,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 0.59,
     "mbVsMmsGp": 20.71,
-    "nbSales": 23440686
+    "nbSales": 23440686,
+    "summary": {
+      "headline": "Tier 3: Minimal MB presence in large, slow-growth market.",
+      "pros": [
+        "Strong gross margin of 40.3% vs NB at 19.6%",
+        "Large total addressable market of $430.7M",
+        "Positioned in Untapped Potential quadrant for growth"
+      ],
+      "cons": [
+        "Negligible MB sales of only $0.1M",
+        "Zero penetration and 0.1% coverage indicate weak presence",
+        "Slow market growth of 0.7% limits upside potential"
+      ]
+    }
   },
   {
     "id": 50,
@@ -1048,7 +1695,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 22.06,
     "mbVsMmsGp": null,
-    "nbSales": 27098769
+    "nbSales": 27098769,
+    "summary": {
+      "headline": "Tier 5: Zero McKesson Brands sales in declining market segment.",
+      "pros": [
+        "Large total market size of $293.8M offers growth potential",
+        "MMS maintains 13.8% market share despite category decline",
+        "Competitor NB products show 18.7% gross margin opportunity"
+      ],
+      "cons": [
+        "Market declining sharply at -24.0% year-over-year",
+        "Zero McKesson Brands penetration and coverage in category",
+        "No MB growth data or competitive positioning established"
+      ]
+    }
   },
   {
     "id": 51,
@@ -1069,7 +1729,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 233822
+    "nbSales": 233822,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales with untapped market potential.",
+      "pros": [
+        "Explosive market growth at 473% demonstrates strong demand",
+        "MMS holds 59.2% market share, establishing category credibility",
+        "Untapped potential quadrant offers greenfield opportunity for entry"
+      ],
+      "cons": [
+        "No McKesson Brand sales or presence in category",
+        "Zero penetration and coverage indicate complete market absence",
+        "High NB GP% suggests competitors capturing margin opportunity"
+      ]
+    }
   },
   {
     "id": 52,
@@ -1090,7 +1763,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -0.24,
     "mbVsMmsGp": null,
-    "nbSales": 601926
+    "nbSales": 601926,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in growing market with untapped potential.",
+      "pros": [
+        "Large $38M market with room for growth",
+        "Stable market growth trajectory at 1.2%",
+        "Untapped potential quadrant offers expansion opportunity"
+      ],
+      "cons": [
+        "Zero MB sales and penetration indicates no market entry",
+        "Low MMS market share at 1.5% suggests weak position",
+        "NB competitors maintain healthy 30.9% gross profit margins"
+      ]
+    }
   },
   {
     "id": 53,
@@ -1111,7 +1797,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 6.53,
     "mmsOutpaceMarket": -6.81,
     "mbVsMmsGp": 7.56,
-    "nbSales": 26488883
+    "nbSales": 26488883,
+    "summary": {
+      "headline": "Tier 2: Strong MB performer with significant untapped coverage potential.",
+      "pros": [
+        "McKesson Brands outpacing NB growth by 650 basis points",
+        "Superior GP margin: 38.3% MB vs 30.7% NB",
+        "Selective Winner positioning with proven penetration at 51%"
+      ],
+      "cons": [
+        "Coverage severely limited at only 3.2% of accounts",
+        "MB growth at 7.2% below market growth of 8.1%",
+        "Significant whitespace: 49% market penetration not yet captured"
+      ]
+    }
   },
   {
     "id": 54,
@@ -1132,7 +1831,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 54.35,
     "mmsOutpaceMarket": -1.59,
     "mbVsMmsGp": 12.53,
-    "nbSales": 901242714
+    "nbSales": 901242714,
+    "summary": {
+      "headline": "Strong MB growth momentum despite market headwinds and low penetration.",
+      "pros": [
+        "31.6% MB growth significantly outpaces NB by 54.4%",
+        "12.5% GP% advantage over NB at 32.1%",
+        "38.4% MMS market share provides distribution strength"
+      ],
+      "cons": [
+        "Only 7% penetration indicates massive untapped opportunity",
+        "Declining market (-21.6%) limits category expansion potential",
+        "2.7% coverage shows minimal customer reach despite $69.3M sales"
+      ]
+    }
   },
   {
     "id": 55,
@@ -1153,7 +1865,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.69,
     "mmsOutpaceMarket": -1.05,
     "mbVsMmsGp": 18.56,
-    "nbSales": 105747833
+    "nbSales": 105747833,
+    "summary": {
+      "headline": "Tier 1: High-growth MB champion with significant untapped market potential.",
+      "pros": [
+        "Strong MB growth at 12.1%, outpacing NB by 11.7%",
+        "Excellent gross profit margin of 43.9% vs NB 25.4%",
+        "Large addressable market of $1.17B with only 23% penetration"
+      ],
+      "cons": [
+        "Very low coverage at 3.9% indicates distribution gaps",
+        "MMS market share only 10.5% despite category strength",
+        "Modest market growth of 3.4% limits category tailwinds"
+      ]
+    }
   },
   {
     "id": 56,
@@ -1174,7 +1899,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 14.68,
     "mbVsMmsGp": null,
-    "nbSales": 719831
+    "nbSales": 719831,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in growing $2M market with strong MMS presence.",
+      "pros": [
+        "Strong market growth at 14.2% year-over-year",
+        "MMS commands 35.2% market share, demonstrating category viability",
+        "Untapped potential with zero current MB penetration"
+      ],
+      "cons": [
+        "No McKesson Brands sales or margin contribution currently",
+        "Competitors already established with significant market share",
+        "Zero penetration suggests weak market positioning or strategy"
+      ]
+    }
   },
   {
     "id": 57,
@@ -1195,7 +1933,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 85.41,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": -65.8,
-    "nbSales": 1084541
+    "nbSales": 1084541,
+    "summary": {
+      "headline": "Tier 5: No current MB sales; requires market validation and strategy.",
+      "pros": [
+        "Strong MB growth trajectory at 21.6% year-over-year",
+        "MB significantly outpacing NB growth by 85.4 percentage points",
+        "Healthy gross profit margin of 34.1% on MB sales"
+      ],
+      "cons": [
+        "Zero MB sales revenue indicates no market traction yet",
+        "Minimal coverage at 8.3% limits growth potential significantly",
+        "Missing market size and share data prevents informed prioritization"
+      ]
+    }
   },
   {
     "id": 58,
@@ -1216,7 +1967,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -15.6,
     "mmsOutpaceMarket": 0.75,
     "mbVsMmsGp": 13.44,
-    "nbSales": 180931697
+    "nbSales": 180931697,
+    "summary": {
+      "headline": "Tier 2: Strong margin position undermined by declining sales and low market penetration.",
+      "pros": [
+        "Superior gross profit margin at 42.6% vs NB 29.2%",
+        "Significant absolute sales of $60.8M in large market",
+        "Market leader position with 21.2% MMS share"
+      ],
+      "cons": [
+        "Declining MB sales at -6.5% year-over-year",
+        "Severely underperforming NB growth by -15.6 points",
+        "Low penetration at 25% indicates untapped account potential"
+      ]
+    }
   },
   {
     "id": 59,
@@ -1237,7 +2001,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 26.63,
     "mmsOutpaceMarket": -7.82,
     "mbVsMmsGp": 7.85,
-    "nbSales": 22230100
+    "nbSales": 22230100,
+    "summary": {
+      "headline": "Tier 2: High-growth MB champion with significant untapped market expansion potential.",
+      "pros": [
+        "MB growing 26.6% faster than NB competitors",
+        "Strong 41.5% gross profit margin versus NB 33.6%",
+        "10.3% market growth provides favorable expansion tailwinds"
+      ],
+      "cons": [
+        "Only 6% penetration indicates massive customer acquisition gap",
+        "Minimal 0.1% coverage limits distribution reach and scale",
+        "Low 0.1% MMS share shows weak competitive positioning overall"
+      ]
+    }
   },
   {
     "id": 60,
@@ -1258,7 +2035,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.36,
     "mmsOutpaceMarket": -6.34,
     "mbVsMmsGp": 13.52,
-    "nbSales": 61262337
+    "nbSales": 61262337,
+    "summary": {
+      "headline": "Strong MB momentum in underpenetrated market warrants Tier 2 priority.",
+      "pros": [
+        "MB outpacing NB growth by 11.4 percentage points significantly",
+        "39.7% gross profit margin substantially exceeds NB at 26.2%",
+        "7.5% MB growth in 3.0% market shows market share gains"
+      ],
+      "cons": [
+        "27% penetration leaves significant untapped customer opportunity ahead",
+        "2.4% coverage indicates selective distribution limiting revenue potential",
+        "13.7% MMS market share suggests competitive intensity in category"
+      ]
+    }
   },
   {
     "id": 61,
@@ -1279,7 +2069,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 5.86,
     "mmsOutpaceMarket": -5.55,
     "mbVsMmsGp": 21.9,
-    "nbSales": 85577615
+    "nbSales": 85577615,
+    "summary": {
+      "headline": "Tier 2: High-growth niche with massive untapped market potential.",
+      "pros": [
+        "MB outpacing NB growth by 5.9 percentage points significantly",
+        "Strong gross profit margin of 35.3% versus NB 13.4%",
+        "Untapped potential in large $384.3M market with low penetration"
+      ],
+      "cons": [
+        "Very low penetration at 1% and coverage at 0.3%",
+        "Small current sales base of $0.5M limits immediate revenue impact",
+        "Low market growth rate of 3.5% constrains category expansion"
+      ]
+    }
   },
   {
     "id": 62,
@@ -1300,7 +2103,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -1.16,
     "mmsOutpaceMarket": -6.6,
     "mbVsMmsGp": 12.07,
-    "nbSales": 158339290
+    "nbSales": 158339290,
+    "summary": {
+      "headline": "Strong margin leader with significant untapped market opportunity despite declining sales.",
+      "pros": [
+        "Superior 32.1% gross profit margin versus NB 20.1%",
+        "Massive market size at $1.85B with only 15% penetration",
+        "MMS holds 8.5% share in large, growing 4.9% market"
+      ],
+      "cons": [
+        "MB sales declining 2.5% while market grows 4.9%",
+        "Underperforming NB by 1.2% in growth rate trajectory",
+        "Low 2.5% coverage suggests distribution or adoption barriers"
+      ]
+    }
   },
   {
     "id": 63,
@@ -1321,7 +2137,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -2.56,
     "mmsOutpaceMarket": 6.41,
     "mbVsMmsGp": 13.56,
-    "nbSales": 50803160
+    "nbSales": 50803160,
+    "summary": {
+      "headline": "High-margin Personal Care with strong growth but limited market penetration needs acceleration",
+      "pros": [
+        "38.7% GP% significantly outperforms NB at 25.1%",
+        "12.9% MB growth exceeds market 7.4% growth rate",
+        "$12.3M sales base provides foundation for scaling"
+      ],
+      "cons": [
+        "Only 19% penetration indicates substantial untapped customer base",
+        "3.0% coverage is critically low for market reach",
+        "Underperforming NB by 2.6% suggests competitive pressure despite higher margins"
+      ]
+    }
   },
   {
     "id": 64,
@@ -1342,7 +2171,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.44,
     "mmsOutpaceMarket": -18.65,
     "mbVsMmsGp": 15.7,
-    "nbSales": 47475471
+    "nbSales": 47475471,
+    "summary": {
+      "headline": "Strong margin advantage offsets declining market and growth headwinds.",
+      "pros": [
+        "Significant GP% advantage: 43.3% vs NB 27.6%",
+        "Market-leading MMS share at 6.6% in category",
+        "Outpacing NB growth despite overall market decline"
+      ],
+      "cons": [
+        "Steep MB decline of -23.3% year-over-year",
+        "Shrinking market: -9.1% total category growth",
+        "Low coverage at 3.0% suggests limited distribution"
+      ]
+    }
   },
   {
     "id": 65,
@@ -1363,7 +2205,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 5.23,
     "mmsOutpaceMarket": -3.94,
     "mbVsMmsGp": 0.91,
-    "nbSales": 24292511
+    "nbSales": 24292511,
+    "summary": {
+      "headline": "Strong MB growth momentum in underpenetrated market signals Tier 2 opportunity.",
+      "pros": [
+        "MB outpacing NB growth by 5.2 percentage points",
+        "Champion category with proven MB sales traction",
+        "Untapped potential with only 4% penetration rate",
+        "Market growing at 3.9% with $66.2M total size"
+      ],
+      "cons": [
+        "Low MB sales of $0.9M limits revenue impact",
+        "Minimal market coverage at 1.0% suggests barriers",
+        "Slim GP margin advantage of 0.9 points vs NB",
+        "MMS already commanding 33.1% market share dominance"
+      ]
+    }
   },
   {
     "id": 66,
@@ -1384,7 +2241,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 12.78,
     "mmsOutpaceMarket": 0.11,
     "mbVsMmsGp": 15.22,
-    "nbSales": 122800512
+    "nbSales": 122800512,
+    "summary": {
+      "headline": "High-growth MB brand with massive untapped market opportunity.",
+      "pros": [
+        "Strong MB growth of 14.1% significantly outpacing NB",
+        "Excellent gross profit margin of 40.0% versus NB 24.8%",
+        "Low penetration (15%) and coverage (2.1%) indicate expansion potential"
+      ],
+      "cons": [
+        "Modest $20.9M MB sales in large $1.16B market",
+        "Overall market growth only 2.7% limits category tailwinds",
+        "Low coverage suggests limited customer reach and distribution"
+      ]
+    }
   },
   {
     "id": 67,
@@ -1405,7 +2275,21 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 10.58,
     "mmsOutpaceMarket": 1.55,
     "mbVsMmsGp": 10.92,
-    "nbSales": 18073181
+    "nbSales": 18073181,
+    "summary": {
+      "headline": "Strong MB growth and margins justify Tier 2 priority investment.",
+      "pros": [
+        "MB outpacing NB growth significantly at 10.6 percentage points",
+        "High gross profit margin of 32.2% supports profitability",
+        "Untapped potential with only 11% penetration indicates room",
+        "Strategy Star status confirms positive MB vs NB dynamics"
+      ],
+      "cons": [
+        "Flat market growth at -0.0% limits category expansion opportunity",
+        "Low coverage at 2.9% constrains scaling potential currently",
+        "MB sales only $2.2M represents modest absolute revenue base"
+      ]
+    }
   },
   {
     "id": 68,
@@ -1426,7 +2310,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 0.39,
     "mbVsMmsGp": null,
-    "nbSales": 37023680
+    "nbSales": 37023680,
+    "summary": {
+      "headline": "Tier 5: Zero MB presence in growing market with strong competitor hold.",
+      "pros": [
+        "Healthy market growth at 2.5% annually",
+        "Significant market size of $2.1M provides opportunity",
+        "Untapped potential quadrant suggests expansion room"
+      ],
+      "cons": [
+        "MMS controls 77.1% market share dominance",
+        "Zero MB sales and penetration currently",
+        "Competitive gap requires substantial investment to enter"
+      ]
+    }
   },
   {
     "id": 69,
@@ -1447,7 +2344,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -1.06,
     "mbVsMmsGp": null,
-    "nbSales": 36543441
+    "nbSales": 36543441,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in high-value market segment.",
+      "pros": [
+        "Large $63M market with established demand signals",
+        "MMS holds strong 53.8% market share position",
+        "Biological/blood category strategically important for healthcare"
+      ],
+      "cons": [
+        "Zero MB penetration and sales despite market presence",
+        "Negative market growth trajectory at -1.0% annually",
+        "Competitor (NB) maintains 19.3% GP% advantage"
+      ]
+    }
   },
   {
     "id": 70,
@@ -1468,7 +2378,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -10,
     "mbVsMmsGp": null,
-    "nbSales": 35743679
+    "nbSales": 35743679,
+    "summary": {
+      "headline": "Zero MB presence in growing $69M cardiology market represents significant untapped opportunity.",
+      "pros": [
+        "Large addressable market at $69.0M with healthy 4.9% growth",
+        "MMS commands 30% market share indicating strong category presence",
+        "Untapped Potential quadrant suggests high growth runway for MB",
+        "NB competitor margin of 20.3% shows profitable category dynamics"
+      ],
+      "cons": [
+        "Complete MB market absence signals potential competitive or capability gaps",
+        "Zero penetration and coverage indicate significant go-to-market investment required",
+        "Cannot assess MB growth trajectory without existing sales baseline",
+        "NB competitors already established with demonstrated profitability and scale"
+      ]
+    }
   },
   {
     "id": 71,
@@ -1489,7 +2414,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 6.63,
     "mbVsMmsGp": null,
-    "nbSales": 1125773679
+    "nbSales": 1125773679,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in high-growth vaccine market.",
+      "pros": [
+        "Massive market opportunity at $743.4M annually",
+        "Strong market growth momentum at 27.4% YoY",
+        "High competitor engagement signals market viability"
+      ],
+      "cons": [
+        "No McKesson Brands presence or sales history",
+        "Dominant competitor (MMS) controls 73.2% share",
+        "Negative NB gross profit indicates margin challenges"
+      ]
+    }
   },
   {
     "id": 72,
@@ -1510,7 +2448,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -1.07,
     "mbVsMmsGp": null,
-    "nbSales": 136349244
+    "nbSales": 136349244,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales presence in declining market.",
+      "pros": [
+        "Large total market opportunity at $271.1M",
+        "Strong MMS competitor presence indicates viable market",
+        "Established category with defined customer base"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration currently",
+        "Market declining at -3.4% annually",
+        "High barrier to entry against dominant competitor",
+        "No MB growth trajectory established",
+        "NB gross profit margin only 9.9%"
+      ]
+    }
   },
   {
     "id": 73,
@@ -1531,7 +2484,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -7.05,
     "mbVsMmsGp": null,
-    "nbSales": 4632182
+    "nbSales": 4632182,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales in high-growth market.",
+      "pros": [
+        "Strong market growth at 26% year-over-year",
+        "Large addressable market of $3.2M available",
+        "MMS has significant 40.5% market share footprint"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration currently",
+        "Competitor NB brands entrenched with 20.9% margins",
+        "No historical MB growth data to leverage"
+      ]
+    }
   },
   {
     "id": 74,
@@ -1552,7 +2518,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -11.77,
     "mbVsMmsGp": null,
-    "nbSales": 8340009
+    "nbSales": 8340009,
+    "summary": {
+      "headline": "No MB sales presence; market declining with strong competitor position.",
+      "pros": [
+        "Strong MMS market share at 50% indicates category relevance",
+        "NB gross profit of 17.3% shows viable margin potential",
+        "Untapped potential suggests significant growth opportunity ahead"
+      ],
+      "cons": [
+        "Zero MB sales and penetration indicates complete market absence",
+        "Negative market growth of -10.8% signals category headwinds",
+        "No MB growth data limits ability to assess competitive viability"
+      ]
+    }
   },
   {
     "id": 75,
@@ -1573,7 +2552,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -4.65,
     "mbVsMmsGp": null,
-    "nbSales": 90328987
+    "nbSales": 90328987,
+    "summary": {
+      "headline": "Tier 5: Zero MB presence in declining market with strong competitor position.",
+      "pros": [
+        "Large addressable market at $4.1M",
+        "MMS holds significant 32.1% market share",
+        "Untapped potential for MB entry and growth"
+      ],
+      "cons": [
+        "Market declining at -8.8% annually",
+        "Zero MB sales and zero penetration currently",
+        "NB competitor has established 12.5% gross profit"
+      ]
+    }
   },
   {
     "id": 76,
@@ -1594,7 +2586,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -78.16,
     "mbVsMmsGp": null,
-    "nbSales": 10592669
+    "nbSales": 10592669,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales despite significant market opportunity.",
+      "pros": [
+        "Large market size at $3.0M with strong 85% growth",
+        "McKesson has 9.2% market share to leverage",
+        "High competitor GP% of 25.8% shows profitability potential"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration indicate no current presence",
+        "Untapped potential requires significant investment to capture",
+        "Competitive market with established non-brand players dominating"
+      ]
+    }
   },
   {
     "id": 77,
@@ -1615,7 +2620,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -10.93,
     "mbVsMmsGp": null,
-    "nbSales": 12606095
+    "nbSales": 12606095,
+    "summary": {
+      "headline": "Tier 5: No McKesson Brands sales; untapped market opportunity.",
+      "pros": [
+        "Large $38.9M market with strong 11.3% growth",
+        "MMS holds healthy 22.4% market share presence",
+        "Zero MB sales means greenfield expansion opportunity"
+      ],
+      "cons": [
+        "National Brands showing negative 16.7% gross profit",
+        "MB has zero penetration and zero coverage currently",
+        "Market dynamics unclear; NB profitability challenges concerning"
+      ]
+    }
   },
   {
     "id": 78,
@@ -1636,7 +2654,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 3176001
+    "nbSales": 3176001,
+    "summary": {
+      "headline": "Zero MB sales with untapped market potential suggests Tier 5 classification.",
+      "pros": [
+        "Positioned in high-growth mens health category",
+        "Untapped potential quadrant indicates opportunity",
+        "No existing MB sales means clean slate"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration currently",
+        "No market data available for category",
+        "NB GP% at 17.5% shows competitive landscape"
+      ]
+    }
   },
   {
     "id": 79,
@@ -1657,7 +2688,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 0.62,
     "mbVsMmsGp": null,
-    "nbSales": 185646926
+    "nbSales": 185646926,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales despite substantial market opportunity.",
+      "pros": [
+        "Large total market size at $255.8M",
+        "Strong MMS market share dominance at 46.7%",
+        "Healthy NB gross profit margin at 27.3%"
+      ],
+      "cons": [
+        "Complete absence of McKesson Brands sales presence",
+        "Zero penetration and coverage indicates no market entry",
+        "Untapped potential requires significant investment to compete"
+      ]
+    }
   },
   {
     "id": 80,
@@ -1678,7 +2722,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 0.35,
     "mbVsMmsGp": null,
-    "nbSales": 36377970
+    "nbSales": 36377970,
+    "summary": {
+      "headline": "Tier 5: Zero McKesson Brands presence in growing ophthalmic market.",
+      "pros": [
+        "Large total market size of $28.4M with healthy 8.2% growth",
+        "Strong MMS market dominance at 63.4% share indicates category importance",
+        "Untapped potential offers greenfield opportunity for MB entry"
+      ],
+      "cons": [
+        "No McKesson Brands sales or presence; complete market absence",
+        "Competitor NB products already established with 20.9% gross profit",
+        "Zero penetration and coverage metrics require significant launch investment"
+      ]
+    }
   },
   {
     "id": 81,
@@ -1699,7 +2756,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -12.39,
     "mmsOutpaceMarket": 0.72,
     "mbVsMmsGp": 6.27,
-    "nbSales": 106759946
+    "nbSales": 106759946,
+    "summary": {
+      "headline": "Tier 2: Strong position deteriorating; needs growth intervention urgently.",
+      "pros": [
+        "Solid $24.9M sales base with 37.3% gross profit margin",
+        "Market-leading 19.5% share in $323.9M total addressable market",
+        "Low coverage (8.4%) indicates significant expansion opportunity"
+      ],
+      "cons": [
+        "Negative 2.5% MB growth while market grows 6.1%",
+        "Lagging NB by 12.4 points; losing competitive ground",
+        "Low penetration (19%) despite reassessment quadrant placement risk"
+      ]
+    }
   },
   {
     "id": 82,
@@ -1720,7 +2790,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 4.61,
     "mbVsMmsGp": null,
-    "nbSales": 4197879
+    "nbSales": 4197879,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales despite $7.7M market opportunity.",
+      "pros": [
+        "Large addressable market at $7.7M with healthy 5.3% growth",
+        "Strong NB gross margin of 33.4% indicates profitable category",
+        "MMS holds 44.6% market share showing category relevance"
+      ],
+      "cons": [
+        "Complete absence of MB sales and penetration signals misalignment",
+        "Untapped potential quadrant indicates strategic execution gap needed",
+        "Zero coverage and 0% penetration require foundational category investment"
+      ]
+    }
   },
   {
     "id": 83,
@@ -1741,7 +2824,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 5.59,
     "mbVsMmsGp": null,
-    "nbSales": 944679232
+    "nbSales": 944679232,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales despite high-growth, large market opportunity.",
+      "pros": [
+        "Large $350.6M total market with strong 17.6% growth",
+        "High MMS market share at 71.1% indicates category strength",
+        "Untapped potential suggests significant growth opportunity ahead"
+      ],
+      "cons": [
+        "Complete absence of MB sales and penetration signals no traction",
+        "NB showing negative GP% indicates category profitability challenges",
+        "Zero coverage means no existing customer base to leverage"
+      ]
+    }
   },
   {
     "id": 84,
@@ -1762,7 +2858,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 561.04,
     "mmsOutpaceMarket": 22.61,
     "mbVsMmsGp": 4.26,
-    "nbSales": 4309873
+    "nbSales": 4309873,
+    "summary": {
+      "headline": "Tier 2: Explosive MB growth with untapped market penetration opportunity.",
+      "pros": [
+        "Exceptional MB growth at 547.2% significantly outpacing NB",
+        "Strong market tailwinds with 115.9% category growth rate",
+        "Superior MB gross margin of 39.9% versus NB 35.7%"
+      ],
+      "cons": [
+        "Very low penetration at 3% indicates limited market adoption",
+        "Minimal MB sales base of $0.1M needs scaling",
+        "Minimal coverage at 0.8% restricts growth potential currently"
+      ]
+    }
   },
   {
     "id": 85,
@@ -1783,7 +2892,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 31.43,
     "mbVsMmsGp": null,
-    "nbSales": 13297055
+    "nbSales": 13297055,
+    "summary": {
+      "headline": "Tier 5: Zero McKesson sales despite moderate market opportunity.",
+      "pros": [
+        "Strong MMS market share at 57.5% indicates category demand",
+        "Untapped potential suggests growth opportunity if MB enters",
+        "Moderate market size of $2.4M provides baseline revenue"
+      ],
+      "cons": [
+        "Zero MB sales and penetration shows complete market absence",
+        "Negative market growth of -46.7% indicates declining category",
+        "Negative NB gross profit signals category-wide profitability challenges"
+      ]
+    }
   },
   {
     "id": 86,
@@ -1804,7 +2926,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -2.89,
     "mbVsMmsGp": 8.12,
-    "nbSales": 13573469
+    "nbSales": 13573469,
+    "summary": {
+      "headline": "Zero MB sales in shrinking market with minimal customer coverage.",
+      "pros": [
+        "High gross profit margin potential at 100%",
+        "Untapped market segment with growth opportunity",
+        "Low competition with 81.6% MMS market share"
+      ],
+      "cons": [
+        "No existing McKesson Brands sales or customer relationships",
+        "Market declining at 17.4% year-over-year rate",
+        "Only 0.6% customer coverage despite market presence"
+      ]
+    }
   },
   {
     "id": 87,
@@ -1825,7 +2960,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 2.98,
     "mbVsMmsGp": null,
-    "nbSales": 25588516
+    "nbSales": 25588516,
+    "summary": {
+      "headline": "Zero MB presence in large, growing market represents significant untapped opportunity.",
+      "pros": [
+        "Large $72M total market with healthy 4.7% growth trajectory",
+        "MMS holds strong 34.3% market share demonstrating category strength",
+        "Untapped Potential quadrant indicates clear expansion opportunity for MB"
+      ],
+      "cons": [
+        "Zero MB sales and zero penetration across entire category",
+        "NB competitors established with 20.3% gross profit margins",
+        "No MB growth data limits ability to assess execution capability"
+      ]
+    }
   },
   {
     "id": 88,
@@ -1846,7 +2994,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 4309675
+    "nbSales": 4309675,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales indicates no current McKesson Brands presence.",
+      "pros": [
+        "Large total market size at $13.2M provides opportunity",
+        "Healthy market growth of 4.4% shows category momentum",
+        "Strong NB gross profit margin of 20.7% demonstrates viability"
+      ],
+      "cons": [
+        "Complete absence of MB sales and market penetration",
+        "MMS already owns 23.6% share, significant competitor presence",
+        "No historical MB growth data to assess potential"
+      ]
+    }
   },
   {
     "id": 89,
@@ -1867,7 +3028,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": 4.37,
     "mbVsMmsGp": null,
-    "nbSales": 16357184
+    "nbSales": 16357184,
+    "summary": {
+      "headline": "Tier 5: Zero MB sales in growing market with untapped potential.",
+      "pros": [
+        "Large total market size at $29.6M with healthy 7.8% growth",
+        "Strong MMS market share of 43.9% demonstrates category viability",
+        "Untapped potential quadrant suggests significant growth opportunity ahead"
+      ],
+      "cons": [
+        "Complete absence of McKesson Brands sales and margin data",
+        "Zero penetration and coverage indicate no current market presence",
+        "Competitors gaining share while MB remains uninvested in category"
+      ]
+    }
   },
   {
     "id": 90,
@@ -1888,7 +3062,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -17.97,
     "mmsOutpaceMarket": 0.43,
     "mbVsMmsGp": 14.45,
-    "nbSales": 37734397
+    "nbSales": 37734397,
+    "summary": {
+      "headline": "Strong margins and market position offset by significant MB decline.",
+      "pros": [
+        "High GP% advantage: 41.0% MB vs 26.5% NB",
+        "Assortment Leader position with established market presence",
+        "Large absolute sales base of $26.8M provides revenue foundation"
+      ],
+      "cons": [
+        "Sharp MB sales decline of -10.4% year-over-year",
+        "MB underperforming NB by -18.0% growth differential",
+        "Low coverage at 14.0% indicates limited market penetration opportunity"
+      ]
+    }
   },
   {
     "id": 91,
@@ -1909,7 +3096,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.06,
     "mmsOutpaceMarket": -7.14,
     "mbVsMmsGp": 4.12,
-    "nbSales": 31217008
+    "nbSales": 31217008,
+    "summary": {
+      "headline": "Strong growth and margin leader with significant expansion runway ahead.",
+      "pros": [
+        "MB growing 11.6% vs market 5.4%, outpacing NB by 11.1%",
+        "33.3% GP margin exceeds NB by 410 basis points",
+        "Assortment Leader with high penetration at 47% of accounts"
+      ],
+      "cons": [
+        "Low coverage at 7.8% limits total market opportunity capture",
+        "MB represents only 7.4% of $374.5M total market",
+        "Significant whitespace despite strong performance trajectory"
+      ]
+    }
   },
   {
     "id": 92,
@@ -1930,7 +3130,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 3.52,
     "mmsOutpaceMarket": -4.58,
     "mbVsMmsGp": 15.62,
-    "nbSales": 168404836
+    "nbSales": 168404836,
+    "summary": {
+      "headline": "Tier 2: Strong performer with selective market opportunity and margin advantage.",
+      "pros": [
+        "Significant margin advantage: 40.2% GB vs 24.6% NB",
+        "MB outpacing NB growth by 3.5 percentage points",
+        "McKesson Brands Champions in growth dynamics framework",
+        "Substantial revenue base at $59.2M with healthy 3.6% growth"
+      ],
+      "cons": [
+        "Low penetration at 26% limits expansion potential currently",
+        "Minimal coverage at 5.0% indicates selective distribution only",
+        "Market growth 5.5% outpacing MB growth 3.6% slightly",
+        "Large addressable market $1864.2M suggests untapped opportunity"
+      ]
+    }
   },
   {
     "id": 93,
@@ -1951,7 +3166,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 26.91,
     "mmsOutpaceMarket": -17.51,
     "mbVsMmsGp": 12.69,
-    "nbSales": 13486210
+    "nbSales": 13486210,
+    "summary": {
+      "headline": "Strong MB growth and margins warrant Tier 1 despite modest market coverage.",
+      "pros": [
+        "MB growing 16.4% with 26.9pp NB outpacing advantage",
+        "40.8% gross profit margin significantly exceeds NB at 28.1%",
+        "Assortment Leader with Champion growth dynamics position"
+      ],
+      "cons": [
+        "Low 10.3% coverage limits category penetration upside potential",
+        "4.0% MMS market share leaves substantial expansion room",
+        "42% penetration indicates untapped customer segment opportunity"
+      ]
+    }
   },
   {
     "id": 94,
@@ -1972,7 +3200,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 2.73,
     "mmsOutpaceMarket": 2.68,
     "mbVsMmsGp": 15.44,
-    "nbSales": 37976220
+    "nbSales": 37976220,
+    "summary": {
+      "headline": "Strong margin and growth momentum offset low penetration and shrinking market.",
+      "pros": [
+        "15.4pp GP% advantage over NB drives profitability",
+        "MB outpacing NB growth by 2.7pp shows momentum",
+        "Strategy Star positioning indicates favorable growth dynamics"
+      ],
+      "cons": [
+        "38% penetration leaves significant untapped customer base",
+        "Declining market (-1.0%) limits overall category growth",
+        "3.9% coverage severely restricts distribution reach potential"
+      ]
+    }
   },
   {
     "id": 95,
@@ -1993,7 +3234,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -1.62,
     "mmsOutpaceMarket": -1.4,
     "mbVsMmsGp": 10.89,
-    "nbSales": 76074239
+    "nbSales": 76074239,
+    "summary": {
+      "headline": "High-margin growth opportunity with significant untapped market potential.",
+      "pros": [
+        "Strong 38.7% gross profit margin well above NB",
+        "Large addressable market at $706.5M with 6.3% growth",
+        "Solid $10.6M MB sales base to build upon"
+      ],
+      "cons": [
+        "MB growth trailing NB by 1.6 percentage points",
+        "Low 12% penetration indicates customer adoption challenges",
+        "Minimal 2.8% coverage suggests limited distribution reach"
+      ]
+    }
   },
   {
     "id": 96,
@@ -2014,7 +3268,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -0.74,
     "mmsOutpaceMarket": -7.01,
     "mbVsMmsGp": 19.76,
-    "nbSales": 24645245
+    "nbSales": 24645245,
+    "summary": {
+      "headline": "High-margin brand with growth headwinds needs market penetration acceleration.",
+      "pros": [
+        "Strong 48.6% gross profit margin versus NB 28.8%",
+        "Significant untapped potential in low 10% penetration rate",
+        "Large addressable market at $862.4M total market size"
+      ],
+      "cons": [
+        "Declining MB sales at -3.4% year-over-year trend",
+        "Underperforming NB growth by -0.7 percentage points",
+        "Very low 2.0% coverage limits market opportunity reach"
+      ]
+    }
   },
   {
     "id": 97,
@@ -2035,7 +3302,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 8.48,
     "mmsOutpaceMarket": -4.59,
     "mbVsMmsGp": 8.67,
-    "nbSales": 20163411
+    "nbSales": 20163411,
+    "summary": {
+      "headline": "High-growth MB champion with strong margins but limited market reach.",
+      "pros": [
+        "MB significantly outpacing NB growth by 8.5 percentage points",
+        "Superior gross profit margin of 40.5% vs NB 31.8%",
+        "Strong MB growth rate of 8.3% exceeds market growth"
+      ],
+      "cons": [
+        "Low penetration at 34% indicates untapped customer potential",
+        "Coverage severely limited at 3.9% across account base",
+        "Small absolute sales base limits scaling revenue impact"
+      ]
+    }
   },
   {
     "id": 98,
@@ -2056,7 +3336,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": -0.69,
     "mmsOutpaceMarket": 0.99,
     "mbVsMmsGp": 13.62,
-    "nbSales": 73508816
+    "nbSales": 73508816,
+    "summary": {
+      "headline": "Tier 2: Strong margin business with selective market penetration needing coverage expansion",
+      "pros": [
+        "Superior 43.4% gross profit margin versus NB at 29.8%",
+        "MB growth slightly positive at 2.9% in modest market",
+        "Selective Winner positioning indicates targeted customer strength"
+      ],
+      "cons": [
+        "Low 28% penetration leaves significant untapped customer base",
+        "Critically low 2.4% coverage limits market reach potential",
+        "MB underperforming NB growth by 0.7 percentage points"
+      ]
+    }
   },
   {
     "id": 99,
@@ -2077,7 +3370,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 5.38,
     "mmsOutpaceMarket": -8.81,
     "mbVsMmsGp": 6.02,
-    "nbSales": 2432377
+    "nbSales": 2432377,
+    "summary": {
+      "headline": "Tier 1: Market leader with strong MB growth and GP advantage.",
+      "pros": [
+        "Dominant 41.5% market share with $43.0M MB sales",
+        "MB outpacing NB growth by 5.4 percentage points",
+        "Superior 34.7% MB GP vs 28.7% NB GP margin",
+        "Exceptional 95% penetration across customer base"
+      ],
+      "cons": [
+        "Low 23.4% coverage limits growth headroom",
+        "Market growth slowing at 10.9% YoY",
+        "MB growth at 8.4% below market expansion rate",
+        "High penetration leaves limited new customer acquisition"
+      ]
+    }
   },
   {
     "id": 100,
@@ -2098,7 +3406,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 13.59,
     "mmsOutpaceMarket": -8.59,
     "mbVsMmsGp": 14.39,
-    "nbSales": 32256630
+    "nbSales": 32256630,
+    "summary": {
+      "headline": "Strong MB growth and margins justify Tier 1 priority despite moderate market penetration.",
+      "pros": [
+        "MB outpacing NB by 13.6% signals strong category momentum",
+        "44.2% GP% significantly exceeds NB at 29.8%",
+        "McKesson Brands Champions status with 7.3% growth rate"
+      ],
+      "cons": [
+        "59% penetration leaves 41% untapped customer opportunity",
+        "6.1% coverage indicates limited shelf presence expansion",
+        "13% market share suggests competitive intensity in category"
+      ]
+    }
   },
   {
     "id": 101,
@@ -2119,7 +3440,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 11.84,
     "mmsOutpaceMarket": -15.67,
     "mbVsMmsGp": 13.89,
-    "nbSales": 22816969
+    "nbSales": 22816969,
+    "summary": {
+      "headline": "High-margin leader with strong penetration but limited growth headroom.",
+      "pros": [
+        "Market-leading 41.4% gross profit margin vs NB 27.5%",
+        "Exceptional penetration at 70% shows customer acceptance",
+        "MB significantly outpacing NB growth by 11.8 points"
+      ],
+      "cons": [
+        "Modest 5.0% MB growth in 9.1% growing market",
+        "Very low 6.2% coverage limits expansion opportunity",
+        "Modest $53.8M sales in large $798.6M market"
+      ]
+    }
   },
   {
     "id": 102,
@@ -2140,7 +3474,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": -129.45,
     "mbVsMmsGp": null,
-    "nbSales": 1789
+    "nbSales": 1789,
+    "summary": {
+      "headline": "High-growth market with zero MB presence presents major opportunity.",
+      "pros": [
+        "Explosive 91.6% market growth indicates strong category momentum",
+        "Untapped potential with 0% penetration and no MB sales",
+        "Healthy 39.8% NB gross margin shows category profitability"
+      ],
+      "cons": [
+        "Zero McKesson Brands sales and market share currently",
+        "Tiny $0.1M total market limits revenue upside potential",
+        "No baseline data to assess competitive positioning or feasibility"
+      ]
+    }
   },
   {
     "id": 103,
@@ -2161,7 +3508,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": null,
     "mmsOutpaceMarket": null,
     "mbVsMmsGp": null,
-    "nbSales": 5264296
+    "nbSales": 5264296,
+    "summary": {
+      "headline": "Zero MB presence in growing market signals untapped opportunity.",
+      "pros": [
+        "Strong market growth at 15.7% year-over-year",
+        "Substantial $9.2M total addressable market available",
+        "Healthy NB gross margin of 30.7% shows profitability",
+        "Untapped potential quadrant indicates greenfield opportunity"
+      ],
+      "cons": [
+        "Zero McKesson sales indicates competitive disadvantage",
+        "No current market share or customer base established",
+        "Requires significant investment to build capabilities",
+        "Competitors likely entrenched in growing category"
+      ]
+    }
   },
   {
     "id": 104,
@@ -2182,7 +3544,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 8.78,
     "mmsOutpaceMarket": -5.36,
     "mbVsMmsGp": 10.59,
-    "nbSales": 88834684
+    "nbSales": 88834684,
+    "summary": {
+      "headline": "Strong MB growth and margins warrant Tier 1 despite modest market penetration.",
+      "pros": [
+        "MB significantly outpacing NB growth by 8.8 percentage points",
+        "Superior gross profit margin of 29.1% versus NB at 18.5%",
+        "Assortment leader position with proven market competitiveness"
+      ],
+      "cons": [
+        "Low penetration at 40% indicates untapped customer potential",
+        "Minimal coverage at 5.2% limits market share expansion",
+        "MMS market share of 14.9% suggests intense competitive pressure"
+      ]
+    }
   },
   {
     "id": 105,
@@ -2203,7 +3578,22 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 10.83,
     "mmsOutpaceMarket": -10.64,
     "mbVsMmsGp": 20.17,
-    "nbSales": 109284136
+    "nbSales": 109284136,
+    "summary": {
+      "headline": "Tier 2: High-growth champion with significant untapped market expansion opportunity.",
+      "pros": [
+        "MB outpacing NB growth by 10.8 percentage points",
+        "Strong 39.5% gross profit margin versus 19.3% NB",
+        "15.7% MB growth in 14.8% expanding market",
+        "Low 11% penetration indicates substantial growth runway"
+      ],
+      "cons": [
+        "Very low 4.3% coverage limits addressable customer base",
+        "Only $13.7M sales against $1.124B market opportunity",
+        "MMS captures just 7.0% of large market",
+        "Untapped potential requires significant resource investment"
+      ]
+    }
   },
   {
     "id": 106,
@@ -2224,7 +3614,20 @@ export const SAMPLE_DATA = [
     "mbOutpaceMms": 6.45,
     "mmsOutpaceMarket": -4.15,
     "mbVsMmsGp": 17.77,
-    "nbSales": 97335506
+    "nbSales": 97335506,
+    "summary": {
+      "headline": "High-margin champion with strong growth but limited market penetration opportunity.",
+      "pros": [
+        "MB outpacing NB growth by 6.5 percentage points significantly",
+        "43.2% gross profit margin substantially exceeds NB at 25.4%",
+        "$26.3M sales base with 4.6% growth momentum year-over-year"
+      ],
+      "cons": [
+        "Only 21% penetration indicates significant untapped customer opportunity",
+        "1.9% coverage extremely low relative to total addressable market",
+        "4.5% MMS market share leaves substantial competitive ground uncovered"
+      ]
+    }
   }
 ];
 
