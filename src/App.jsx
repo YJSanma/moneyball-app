@@ -96,6 +96,10 @@ export default function App() {
 
   const handleDataLoaded = (rows, source) => {
     const filtered = rows.filter(r => r.category && r.category.trim().toLowerCase() !== 'n/a');
+    // .filter() creates a new array and loses any properties attached to the original
+    // (like _detectedHeaders). Copy them across so DataTable can build columns correctly.
+    if (rows._detectedHeaders) filtered._detectedHeaders = rows._detectedHeaders;
+    if (rows._mappedFields)    filtered._mappedFields    = rows._mappedFields;
     setData(filtered);
     setDataSource(source);
     setShowUpload(false);

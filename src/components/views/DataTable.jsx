@@ -96,6 +96,9 @@ function buildDynamicColumns(headers) {
       ? getGrowthQuadrant(row.mbOutpaceMms, row.mmsOutpaceMarket) : null,
   };
 
+  // Guard: if headers were empty (e.g. _detectedHeaders not passed through), avoid
+  // putting undefined at position 0 which would crash the render.
+  if (!raw.length) return [tierCol, f1Col, f2Col];
   return [raw[0], tierCol, ...raw.slice(1), f1Col, f2Col];
 }
 
