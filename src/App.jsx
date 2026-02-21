@@ -285,8 +285,8 @@ export default function App() {
               />
               <DualKPICard
                 label="Portfolio Reach"
-                label1="Penetration" val1={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
-                label2="Avg Coverage" val2={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
+                label1="Coverage" val1={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
+                label2="Penetration" val2={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
                 color="#d97706" bg="#fffbeb"
               />
             </div>
