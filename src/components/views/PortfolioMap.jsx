@@ -122,10 +122,10 @@ export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 2
   const isZoomed = xMinIn !== '' || xMaxIn !== '' || yMinIn !== '' || yMaxIn !== '';
   const resetZoom = () => { setXMinIn(''); setXMaxIn(''); setYMinIn(''); setYMaxIn(''); };
 
-  // Default domain is [0, 100] for both axes (penetration and coverage are 0–100%)
+  // Default domain: X (penetration) 0–85%, Y (coverage) 0–15%
   const activeDomain = {
-    x: [toNum(xMinIn, 0), toNum(xMaxIn, 100)],
-    y: [toNum(yMinIn, 0), toNum(yMaxIn, 100)],
+    x: [toNum(xMinIn, 0), toNum(xMaxIn, 85)],
+    y: [toNum(yMinIn, 0), toNum(yMaxIn, 15)],
   };
   const activeXTicks = makeTicks(activeDomain.x[0], activeDomain.x[1]);
   const activeYTicks = makeTicks(activeDomain.y[0], activeDomain.y[1]);
@@ -232,7 +232,7 @@ export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 2
             <input type="number" value={xMinIn} placeholder="0"
               onChange={e => setXMinIn(e.target.value)} className={inputCls} />
             <span>–</span>
-            <input type="number" value={xMaxIn} placeholder="100"
+            <input type="number" value={xMaxIn} placeholder="85"
               onChange={e => setXMaxIn(e.target.value)} className={inputCls} />
             <span>%</span>
           </div>
@@ -241,7 +241,7 @@ export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 2
             <input type="number" value={yMinIn} placeholder="0"
               onChange={e => setYMinIn(e.target.value)} className={inputCls} />
             <span>–</span>
-            <input type="number" value={yMaxIn} placeholder="100"
+            <input type="number" value={yMaxIn} placeholder="15"
               onChange={e => setYMaxIn(e.target.value)} className={inputCls} />
             <span>%</span>
           </div>
