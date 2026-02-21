@@ -43,7 +43,8 @@ export default function App() {
   }, [data, weights]);
 
   const handleDataLoaded = (rows, source) => {
-    setData(rows);
+    const filtered = rows.filter(r => r.category && r.category.trim().toLowerCase() !== 'n/a');
+    setData(filtered);
     setDataSource(source);
     setShowUpload(false);
     setActiveView('portfolio');

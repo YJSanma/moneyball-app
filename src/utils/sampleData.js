@@ -1915,40 +1915,6 @@ export const SAMPLE_DATA = [
     }
   },
   {
-    "id": 57,
-    "category": "N/A",
-    "tier": null,
-    "penetration": 0.01,
-    "coverage": 8.33,
-    "totalMarket": null,
-    "marketGrowth": null,
-    "marketShare": null,
-    "mmsGpDollars": 1083078,
-    "mmsGpMargin": 99.9,
-    "mmsGrowth": -63.81,
-    "revenue": 118,
-    "mbGpDollars": 40,
-    "mbGpMargin": 34.1,
-    "mbGrowth": 21.6,
-    "mbOutpaceMms": 85.41,
-    "mmsOutpaceMarket": null,
-    "mbVsMmsGp": -65.8,
-    "nbSales": 1084541,
-    "summary": {
-      "headline": "Tier 5: No current MB sales; requires market validation and strategy.",
-      "pros": [
-        "Strong MB growth trajectory at 21.6% year-over-year",
-        "MB significantly outpacing NB growth by 85.4 percentage points",
-        "Healthy gross profit margin of 34.1% on MB sales"
-      ],
-      "cons": [
-        "Zero MB sales revenue indicates no market traction yet",
-        "Minimal coverage at 8.3% limits growth potential significantly",
-        "Missing market size and share data prevents informed prioritization"
-      ]
-    }
-  },
-  {
     "id": 58,
     "category": "Needles & Syringes",
     "tier": null,

@@ -395,9 +395,9 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
             </div>
           </Section>
 
-          {/* Distribution */}
-          <Section title="Distribution">
-            <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* Portfolio Reach */}
+          <Section title="Portfolio Reach">
+            <div className="grid grid-cols-2 gap-3">
               <MetricTile
                 label="Penetration"
                 value={formatPercent(category.penetration, 0)}
@@ -410,33 +410,6 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 sub="% of SKUs listed"
                 color="#0891b2" bg="#ecfeff"
               />
-            </div>
-            {/* Penetration & Coverage bars */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-24 shrink-0">Penetration</span>
-                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="h-3 rounded-full"
-                    style={{ width: `${Math.min(100, category.penetration ?? 0)}%`, backgroundColor: '#0066CC' }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-gray-700 w-10 text-right">
-                  {formatPercent(category.penetration, 0)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-24 shrink-0">Coverage</span>
-                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="h-3 rounded-full"
-                    style={{ width: `${Math.min(100, category.coverage ?? 0)}%`, backgroundColor: '#0891b2' }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-gray-700 w-10 text-right">
-                  {formatPercent(category.coverage, 0)}
-                </span>
-              </div>
             </div>
           </Section>
 
