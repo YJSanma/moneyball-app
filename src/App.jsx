@@ -79,6 +79,18 @@ export default function App() {
   const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
     ? (totalMbSales / mmsTotalSales * 100) : null;
 
+  // Penetration — Tier 1–4 categories only (exclude Tier 5)
+  const t14 = scoredData?.filter(d => d.tier >= 1 && d.tier <= 4) ?? [];
+  const penT14Mb = t14.reduce((s, d) => s + (d.revenue || 0), 0);
+  const penT14Nb = t14.reduce((s, d) => s + (d.nbSales || 0), 0);
+  const penTier14 = (penT14Mb + penT14Nb) > 0 ? (penT14Mb / (penT14Mb + penT14Nb) * 100) : null;
+
+  // Penetration — categories where individual penetration is already > 20%
+  const above20 = scoredData?.filter(d => d.penetration != null && d.penetration > 20) ?? [];
+  const penA20Mb = above20.reduce((s, d) => s + (d.revenue || 0), 0);
+  const penA20Nb = above20.reduce((s, d) => s + (d.nbSales || 0), 0);
+  const penAbove20 = (penA20Mb + penA20Nb) > 0 ? (penA20Mb / (penA20Mb + penA20Nb) * 100) : null;
+
   // Coverage KPI: mean of the coverage field across all categories
   const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
   const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.coverage, 0) / withCov.length : null;
@@ -279,10 +291,11 @@ export default function App() {
                 label2="NB GP%" val2={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
                 color="#7c3aed" bg="#f5f3ff"
               />
-              <DualKPICard
-                label="Portfolio Reach"
-                label1="Coverage" val1={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
-                label2="Penetration" val2={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
+              <ReachKPICard
+                coverage={avgCoverage}
+                penAll={portfolioPenetration}
+                penT14={penTier14}
+                penAbove20={penAbove20}
                 color="#d97706" bg="#fffbeb"
               />
             </div>
@@ -378,6 +391,39 @@ function DualKPICard({ label, val1, label1, val2, label2, color, bg }) {
         <div className="flex-1 border-l pl-3" style={{ borderColor: color + '30' }}>
           <p className="text-[10px] mb-0.5" style={{ color: color + '88' }}>{label2}</p>
           <p className="text-xl font-bold" style={{ color }}>{val2}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Portfolio Reach tile: Coverage + three penetration breakdowns
+function ReachKPICard({ coverage, penAll, penT14, penAbove20, color, bg }) {
+  const fmt = (v) => v != null ? formatPercent(v, 1) : '—';
+  return (
+    <div className="rounded-xl border p-4" style={{ backgroundColor: bg, borderColor: color + '30' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: color + 'aa' }}>Portfolio Reach</p>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <p className="text-[10px] mb-0.5" style={{ color: color + '88' }}>Coverage</p>
+          <p className="text-xl font-bold" style={{ color }}>{fmt(coverage)}</p>
+        </div>
+        <div className="flex-1 border-l pl-3" style={{ borderColor: color + '30' }}>
+          <p className="text-[10px] mb-1" style={{ color: color + '88' }}>Penetration</p>
+          <div className="space-y-0.5">
+            <div className="flex justify-between text-xs">
+              <span style={{ color: color + '99' }}>All</span>
+              <span className="font-bold" style={{ color }}>{fmt(penAll)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: color + '99' }}>Tier 1–4</span>
+              <span className="font-bold" style={{ color }}>{fmt(penT14)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: color + '99' }}>&gt;20% pen</span>
+              <span className="font-bold" style={{ color }}>{fmt(penAbove20)}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
