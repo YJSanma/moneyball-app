@@ -58,31 +58,18 @@ export default function App() {
     setSelectedCategory(null);
   };
 
-  // KPI calculations — normalize all dollar fields to full dollars
-  // Fields from "$m" columns: parser already ×1M → value ≥ 1M → used as-is
-  // Fields from unlabeled columns: value in millions (< 1M) → ×1M here
-  const totalMbSales = scoredData?.reduce((s, d) => {
-    const v = d.revenue;      if (v == null) return s;
-    return s + (v >= 1_000_000 ? v : v * 1_000_000);
-  }, 0) ?? 0;
-
-  const totalMbGP = scoredData?.reduce((s, d) => {
-    const v = d.mbGpDollars;  if (v == null) return s;
-    return s + (v >= 1_000_000 ? v : v * 1_000_000);
-  }, 0) ?? 0;
+  // KPI calculations — parser already handles all unit conversion.
+  // Dollar columns labeled "$m": parser multiplies by 1,000,000 before storing.
+  // Percentage columns: parser normalizes to actual percentage values (not decimals).
+  // App.jsx must never re-scale — just sum the pre-converted values.
+  const totalMbSales = scoredData?.reduce((s, d) => s + (d.revenue      || 0), 0) ?? 0;
+  const totalMbGP    = scoredData?.reduce((s, d) => s + (d.mbGpDollars  || 0), 0) ?? 0;
 
   // Card 3: true portfolio GP% = total GP$ / total Sales$ (not an average of individual margins)
   const portfolioMbGpPct = totalMbSales > 0 ? (totalMbGP / totalMbSales * 100) : null;
 
-  const totalNbGp = scoredData?.reduce((s, d) => {
-    const v = d.mmsGpDollars; if (v == null) return s;
-    return s + (v >= 1_000_000 ? v : v * 1_000_000);
-  }, 0) ?? 0;
-
-  const totalNbSales = scoredData?.reduce((s, d) => {
-    const v = d.nbSales;      if (v == null) return s;
-    return s + (v >= 1_000_000 ? v : v * 1_000_000);
-  }, 0) ?? 0;
+  const totalNbGp    = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalNbSales = scoredData?.reduce((s, d) => s + (d.nbSales      || 0), 0) ?? 0;
 
   // NB GP% = sum(NB GP$) / sum(NB Sales$) — shows — until NB Sales column uploaded
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
