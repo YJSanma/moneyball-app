@@ -522,16 +522,16 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
           <Section title="Strategic Classification">
             <div className="space-y-6">
 
-              {/* Framework 1 — Penetration × Coverage */}
+              {/* Framework 1 — Penetration × Coverage (X=Penetration, Y=Coverage) */}
               <FrameworkDiagram
                 title="Framework 1 — Penetration × Coverage"
-                yLabel="Pen"
-                xLabel="Coverage"
+                xLabel="Pen"
+                yLabel="Coverage"
                 activeLabel={f1q?.label}
-                topLeft={{    label: 'Selective Winner',   color: '#1d4ed8', bg: '#dbeafe' }}
+                topLeft={{    label: 'Reassessment',       color: '#3b82f6', bg: '#eff6ff' }}
                 topRight={{   label: 'Assortment Leader',  color: '#0066CC', bg: '#dbeafe' }}
                 bottomLeft={{  label: 'Untapped Potential', color: '#6b7280', bg: '#f3f4f6' }}
-                bottomRight={{ label: 'Reassessment',       color: '#3b82f6', bg: '#eff6ff' }}
+                bottomRight={{ label: 'Selective Winner',   color: '#1d4ed8', bg: '#dbeafe' }}
               />
 
               <div className="border-t border-gray-100" />
