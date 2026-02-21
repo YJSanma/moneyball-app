@@ -19,7 +19,7 @@ const STATIC_COLUMNS = [
   { key: 'mmsGpMargin',      label: 'NB GP%',            align: 'right', format: (v) => formatPercent(v) },
   { key: 'penetration',      label: 'Penetration',       align: 'right', format: (v) => formatPercent(v, 0) },
   { key: 'coverage',         label: 'Coverage',          align: 'right', format: (v) => formatPercent(v, 0) },
-  { key: 'totalMarket',      label: 'Total Market $m',   align: 'right', format: (v) => v != null ? `$${v}M` : '—' },
+  { key: 'totalMarket',      label: 'Total Market $',    align: 'right', format: (v) => formatCurrency(v) },
   { key: 'marketGrowth',     label: 'Mkt Growth',        align: 'right', format: (v) => formatPercent(v) },
   { key: 'marketShare',      label: 'MMS Mkt Share',     align: 'right', format: (v) => formatPercent(v) },
   { key: 'mmsGrowth',        label: 'NB Growth',         align: 'right', format: (v) => formatPercent(v) },
