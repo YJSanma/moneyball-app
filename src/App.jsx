@@ -75,12 +75,19 @@ export default function App() {
   const totalNbSales   = Math.max(0, totalMmsSales - totalMbSales);
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
 
-  // Card 4: penetration = total MB Sales$ / total MMS Sales$ across all categories
-  const portfolioPenetration = totalMmsSales > 0 ? (totalMbSales / totalMmsSales * 100) : null;
+  // Card 4: penetration = total MB Sales / (total MB Sales + total NB Sales)
+  // NB Sales comes from the "NB sales $" column in uploaded data; same $m normalisation as totalMarket
+  const totalNbSales = scoredData?.reduce((s, d) => {
+    if (d.nbSales == null) return s;
+    const val = d.nbSales >= 1_000_000 ? d.nbSales : d.nbSales * 1_000_000;
+    return s + val;
+  }, 0) ?? 0;
+  const mmsTotalSales = totalMbSales + totalNbSales;
+  const portfolioPenetration = mmsTotalSales > 0 ? (totalMbSales / mmsTotalSales * 100) : null;
 
-  // Coverage KPI: mean of the penetration field (account penetration = what user calls "coverage")
-  const withCov    = scoredData?.filter((d) => d.penetration != null) ?? [];
-  const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.penetration, 0) / withCov.length : null;
+  // Coverage KPI: mean of the coverage field across all categories
+  const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
+  const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.coverage, 0) / withCov.length : null;
 
   const ActiveComponent = VIEWS.find((v) => v.id === activeView)?.component;
 

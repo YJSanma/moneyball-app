@@ -108,6 +108,8 @@ export const EXPECTED_COLUMNS = {
                      'nb outpace market %', 'nb outpace market growth', 'nb outpace'],
   mmsGrowth:        ['mms growth', 'mms growth %', 'nb growth', 'nb growth %'],
   mbGrowth:         ['mb growth', 'mb growth %'],
+  nbSales:          ['nb sales $', 'nb sales $m', 'nb sales', 'national brand sales $',
+                     'nb sales dollars', 'nb revenue', 'nb revenue $m'],
   mbVsMmsGp:        ['mb gp higher than mms gp %', 'mb gp higher than mms gp',
                      'mb gp higher than nb gp %', 'mb gp higher than nb gp',
                      'mb vs mms gp', 'mb vs nb gp', 'mb gp higher', 'mb higher than mms'],

@@ -196,17 +196,22 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
   const mbVsNbGpDiff = category.mbGpMargin != null && category.mmsGpMargin != null
     ? category.mbGpMargin - category.mmsGpMargin : null;
 
-  // NB Sales = Total Market × Market Share — normalise totalMarket to dollars first
-  // (sample data stores totalMarket in millions; uploaded data stores as actual dollars)
-  const totalMarketDollars = category.totalMarket != null
-    ? (category.totalMarket >= 1_000_000 ? category.totalMarket : category.totalMarket * 1_000_000)
-    : null;
-  // MMS Sales = Total Market × MMS Market Share
-  const mmsSalesDollars = totalMarketDollars != null && category.marketShare != null
-    ? totalMarketDollars * (category.marketShare / 100) : null;
-  // NB Sales = MMS Sales − MB Sales (NB = national/branded products sold through MMS)
-  const nbSalesDollars = mmsSalesDollars != null && category.revenue != null
-    ? Math.max(0, mmsSalesDollars - category.revenue) : null;
+  // NB Sales: use uploaded "NB sales $" column directly when available (same $m normalisation as totalMarket)
+  // Fall back to: Total Market × Market Share − MB Sales
+  const nbSalesDollars = (() => {
+    if (category.nbSales != null) {
+      return category.nbSales >= 1_000_000 ? category.nbSales : category.nbSales * 1_000_000;
+    }
+    const mktDollars = category.totalMarket != null
+      ? (category.totalMarket >= 1_000_000 ? category.totalMarket : category.totalMarket * 1_000_000)
+      : null;
+    const mms = mktDollars != null && category.marketShare != null
+      ? mktDollars * (category.marketShare / 100) : null;
+    return mms != null && category.revenue != null ? Math.max(0, mms - category.revenue) : null;
+  })();
+  // MMS Sales = MB Sales + NB Sales
+  const mmsSalesDollars = category.revenue != null && nbSalesDollars != null
+    ? category.revenue + nbSalesDollars : null;
 
   // Radar chart — 6 dimensions normalised within the portfolio
   const radarDimensions = [
@@ -366,12 +371,6 @@ export default function CategoryDetail({ category, allData, onBack, penThreshold
                 label="MMS Market Share"
                 value={formatPercent(category.marketShare)}
                 color="#7c3aed" bg="#f5f3ff"
-              />
-              <MetricTile
-                label="MMS Sales$"
-                value={formatCurrency(mmsSalesDollars, true)}
-                sub="Total Market × Market Share"
-                color="#059669" bg="#ecfdf5"
               />
             </div>
           </Section>
