@@ -20,7 +20,59 @@ const VIEWS = [
   { id: 'table',     label: 'Data Table',               shortLabel: 'Table',    icon: Table2,       component: DataTable       },
 ];
 
+// ── Password gate ──────────────────────────────────────────────────────────
+const PASSWORD = 'moneyball';
+const SESSION_KEY = 'mb_auth';
+
+function PasswordGate({ onUnlock }) {
+  const [value, setValue] = useState('');
+  const [error, setError] = useState(false);
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (value === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      onUnlock();
+    } else {
+      setError(true);
+      setValue('');
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-sm text-center">
+        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-5">
+          <span className="text-white text-xl font-bold">M</span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-1">Moneyball</h1>
+        <p className="text-sm text-gray-400 mb-7">Enter the password to continue</p>
+        <form onSubmit={submit} className="space-y-3">
+          <input
+            type="password"
+            value={value}
+            onChange={e => { setValue(e.target.value); setError(false); }}
+            placeholder="Password"
+            autoFocus
+            className="w-full border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ borderColor: error ? '#ef4444' : '#d1d5db' }}
+          />
+          {error && <p className="text-xs text-red-500">Incorrect password</p>}
+          <button
+            type="submit"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white"
+            style={{ backgroundColor: '#0066CC' }}
+          >
+            Enter
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
   const [data,           setData]           = useState(SAMPLE_DATA);
   const [dataSource,     setDataSource]     = useState('Sample Data');
   const [activeView,     setActiveView]     = useState('portfolio');
@@ -97,6 +149,8 @@ export default function App() {
   const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.coverage, 0) / withCov.length : null;
 
   const ActiveComponent = VIEWS.find((v) => v.id === activeView)?.component;
+
+  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
