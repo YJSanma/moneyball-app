@@ -65,27 +65,21 @@ export default function App() {
   // Card 3: true portfolio GP% = total GP$ / total Sales$ (not an average of individual margins)
   const portfolioMbGpPct = totalMbSales > 0 ? (totalMbGP / totalMbSales * 100) : null;
 
-  // NB GP%: NB Sales = MMS Sales − MB Sales (MMS Sales = Total Market × Market Share)
-  const totalNbGp      = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
-  const totalMmsSales  = scoredData?.reduce((s, d) => {
-    if (d.totalMarket == null || d.marketShare == null) return s;
-    const mktDollars = d.totalMarket >= 1_000_000 ? d.totalMarket : d.totalMarket * 1_000_000;
-    return s + mktDollars * (d.marketShare / 100);
-  }, 0) ?? 0;
-  const nbGpSales = Math.max(0, totalMmsSales - totalMbSales);
-  const portfolioNbGpPct = nbGpSales > 0 ? (totalNbGp / nbGpSales * 100) : null;
-
-  // Card 4: penetration = total MB Sales / (total MB Sales + total NB Sales)
-  // NB Sales comes from the "NB sales $" column in uploaded data; same $m normalisation as totalMarket
+  // NB totals — from uploaded columns
+  const totalNbGp    = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
   const totalNbSales = scoredData?.reduce((s, d) => {
     if (d.nbSales == null) return s;
     const val = d.nbSales >= 1_000_000 ? d.nbSales : d.nbSales * 1_000_000;
     return s + val;
   }, 0) ?? 0;
+
+  // NB GP% = sum(NB GP$) / sum(NB Sales$) — shows — until NB Sales column uploaded
+  const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
+
+  // Penetration = NB Sales / (NB Sales + MB Sales) — shows — until NB Sales column uploaded
   const mmsTotalSales = totalMbSales + totalNbSales;
-  // Show — if no NB Sales column uploaded yet (avoids showing 100%)
   const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
-    ? (totalMbSales / mmsTotalSales * 100) : null;
+    ? (totalNbSales / mmsTotalSales * 100) : null;
 
   // Coverage KPI: mean of the coverage field across all categories
   const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
