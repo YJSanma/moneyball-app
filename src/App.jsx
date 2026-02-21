@@ -75,13 +75,8 @@ export default function App() {
   const totalNbSales   = Math.max(0, totalMmsSales - totalMbSales);
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
 
-  // Card 4: penetration = total MB Sales$ / total Market$ (true market penetration rate)
-  // Sample data stores totalMarket in millions; uploaded data stores as actual dollars — normalise via threshold
-  const totalMarketDollars = scoredData?.reduce((s, d) => {
-    if (d.totalMarket == null) return s;
-    return s + (d.totalMarket >= 1_000_000 ? d.totalMarket : d.totalMarket * 1_000_000);
-  }, 0) ?? 0;
-  const portfolioPenetration = totalMarketDollars > 0 ? (totalMbSales / totalMarketDollars * 100) : null;
+  // Card 4: penetration = total MB Sales$ / total MMS Sales$ across all categories
+  const portfolioPenetration = totalMmsSales > 0 ? (totalMbSales / totalMmsSales * 100) : null;
 
   // Coverage: mean across all categories
   const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
@@ -285,8 +280,8 @@ export default function App() {
               />
               <DualKPICard
                 label="Portfolio Reach"
-                label1="Coverage" val1={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
-                label2="Penetration" val2={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
+                label1="Coverage" val1={avgCoverage != null ? formatPercent(avgCoverage, 0) : '—'}
+                label2="Penetration" val2={portfolioPenetration != null ? formatPercent(portfolioPenetration, 1) : '—'}
                 color="#d97706" bg="#fffbeb"
               />
             </div>
