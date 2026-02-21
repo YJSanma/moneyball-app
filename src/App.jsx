@@ -58,28 +58,39 @@ export default function App() {
     setSelectedCategory(null);
   };
 
-  // KPI calculations — use scoredData so tier counts reflect computed tiers
-  const totalMbSales = scoredData?.reduce((s, d) => s + (d.revenue     || 0), 0) ?? 0;
-  const totalMbGP    = scoredData?.reduce((s, d) => s + (d.mbGpDollars || 0), 0) ?? 0;
+  // KPI calculations — normalize all dollar fields to full dollars
+  // Fields from "$m" columns: parser already ×1M → value ≥ 1M → used as-is
+  // Fields from unlabeled columns: value in millions (< 1M) → ×1M here
+  const totalMbSales = scoredData?.reduce((s, d) => {
+    const v = d.revenue;      if (v == null) return s;
+    return s + (v >= 1_000_000 ? v : v * 1_000_000);
+  }, 0) ?? 0;
+
+  const totalMbGP = scoredData?.reduce((s, d) => {
+    const v = d.mbGpDollars;  if (v == null) return s;
+    return s + (v >= 1_000_000 ? v : v * 1_000_000);
+  }, 0) ?? 0;
 
   // Card 3: true portfolio GP% = total GP$ / total Sales$ (not an average of individual margins)
   const portfolioMbGpPct = totalMbSales > 0 ? (totalMbGP / totalMbSales * 100) : null;
 
-  // NB totals — from uploaded columns
-  const totalNbGp    = scoredData?.reduce((s, d) => s + (d.mmsGpDollars || 0), 0) ?? 0;
+  const totalNbGp = scoredData?.reduce((s, d) => {
+    const v = d.mmsGpDollars; if (v == null) return s;
+    return s + (v >= 1_000_000 ? v : v * 1_000_000);
+  }, 0) ?? 0;
+
   const totalNbSales = scoredData?.reduce((s, d) => {
-    if (d.nbSales == null) return s;
-    const val = d.nbSales >= 1_000_000 ? d.nbSales : d.nbSales * 1_000_000;
-    return s + val;
+    const v = d.nbSales;      if (v == null) return s;
+    return s + (v >= 1_000_000 ? v : v * 1_000_000);
   }, 0) ?? 0;
 
   // NB GP% = sum(NB GP$) / sum(NB Sales$) — shows — until NB Sales column uploaded
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
 
-  // Penetration = NB Sales / (NB Sales + MB Sales) — shows — until NB Sales column uploaded
+  // Penetration = MB Sales / (MB + NB Sales) = McKesson brand share of MMS sales
   const mmsTotalSales = totalMbSales + totalNbSales;
   const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
-    ? (totalNbSales / mmsTotalSales * 100) : null;
+    ? (totalMbSales / mmsTotalSales * 100) : null;
 
   // Coverage KPI: mean of the coverage field across all categories
   const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
