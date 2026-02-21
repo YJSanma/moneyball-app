@@ -182,7 +182,7 @@ export default function CategoryDetail({ category, allData, onBack }) {
   // Bar chart — side-by-side MB vs MMS GP$
   const gpComparisonData = [
     { name: 'MB GP$',  value: category.mbGpDollars  ?? 0, fill: '#0066CC' },
-    { name: 'MMS GP$', value: category.mmsGpDollars ?? 0, fill: '#059669' },
+    { name: 'NB GP$',  value: category.mmsGpDollars ?? 0, fill: '#059669' },
   ];
 
   // Portfolio rank context
@@ -269,17 +269,17 @@ export default function CategoryDetail({ category, allData, onBack }) {
                 color="#0891b2" bg="#ecfeff"
               />
               <MetricTile
-                label="MMS GP$"
+                label="NB GP$"
                 value={formatCurrency(category.mmsGpDollars, true)}
                 color="#059669" bg="#ecfdf5"
               />
               <MetricTile
-                label="MMS GP%"
+                label="NB GP%"
                 value={formatPercent(category.mmsGpMargin)}
                 color="#059669" bg="#ecfdf5"
               />
               <MetricTile
-                label="MB GP > MMS GP"
+                label="MB GP higher than NB GP"
                 value={formatPercent(category.mbVsMmsGp)}
                 sub="MB margin advantage"
                 color="#4f46e5" bg="#eef2ff"
@@ -396,7 +396,7 @@ export default function CategoryDetail({ category, allData, onBack }) {
                 bg={category.mbGrowth > 0 ? '#ecfdf5' : '#fef2f2'}
               />
               <MetricTile
-                label="MMS Growth"
+                label="NB Growth"
                 value={formatPercent(category.mmsGrowth)}
                 trend={category.mmsGrowth}
                 color={category.mmsGrowth > 0 ? '#059669' : '#dc2626'}
@@ -410,17 +410,17 @@ export default function CategoryDetail({ category, allData, onBack }) {
                 bg={category.marketGrowth > 0 ? '#ecfeff' : '#fef2f2'}
               />
               <MetricTile
-                label="MB outpace MMS"
+                label="MB outpace NB %"
                 value={formatPercent(category.mbOutpaceMms)}
-                sub="MB growth − MMS growth"
+                sub="MB growth − NB growth"
                 trend={category.mbOutpaceMms}
                 color={category.mbOutpaceMms >= 0 ? '#059669' : '#dc2626'}
                 bg={category.mbOutpaceMms >= 0 ? '#ecfdf5' : '#fef2f2'}
               />
               <MetricTile
-                label="MMS outpace Market"
+                label="NB outpace Non-PL market"
                 value={formatPercent(category.mmsOutpaceMarket)}
-                sub="MMS growth − Mkt growth"
+                sub="NB growth − Non-PL market growth"
                 trend={category.mmsOutpaceMarket}
                 color={category.mmsOutpaceMarket >= 0 ? '#059669' : '#dc2626'}
                 bg={category.mmsOutpaceMarket >= 0 ? '#ecfdf5' : '#fef2f2'}
@@ -487,11 +487,11 @@ export default function CategoryDetail({ category, allData, onBack }) {
 
               <div className="border-t border-gray-100" />
 
-              {/* Framework 2 — MB outpace MMS × MMS outpace Market */}
+              {/* Framework 2 — MB outpace NB × NB outpace Non-PL market */}
               <FrameworkDiagram
                 title="Framework 2 — Growth Dynamics"
-                yLabel="MB vs MMS"
-                xLabel="MMS vs Market"
+                yLabel="MB vs NB"
+                xLabel="NB vs Non-PL Market"
                 activeLabel={f2q?.label}
                 topLeft={{    label: 'McKesson Brands Champions', color: '#3b82f6', bg: '#eff6ff' }}
                 topRight={{   label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' }}

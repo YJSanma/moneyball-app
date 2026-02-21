@@ -66,13 +66,14 @@ export function getPenCovQuadrant(penetration, coverage) {
 }
 
 // Framework 2 quadrant — x=0 and y=0 thresholds
-export function getGrowthQuadrant(mbOutpaceMms, mmsOutpaceMarket) {
-  const highMb  = mbOutpaceMms     >= 0;
-  const highMms = mmsOutpaceMarket >= 0;
-  if  (highMb &&  highMms) return { label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' };
-  if  (highMb && !highMms) return { label: 'McKesson Brands Champions',  color: '#3b82f6', bg: '#eff6ff' };
-  if (!highMb &&  highMms) return { label: 'Opportunity Gap',           color: '#3b82f6', bg: '#eff6ff' };
-  return                          { label: 'Evaluation Candidates',     color: '#6b7280', bg: '#f3f4f6' };
+// Y-axis: MB outpace NB %, X-axis: NB outpace Non-PL market
+export function getGrowthQuadrant(mbOutpaceNb, nbOutpaceMarket) {
+  const highMb  = mbOutpaceNb     >= 0;
+  const highNb  = nbOutpaceMarket >= 0;
+  if  (highMb &&  highNb) return { label: 'Strategy Star',             color: '#1d4ed8', bg: '#dbeafe' };
+  if  (highMb && !highNb) return { label: 'McKesson Brands Champions',  color: '#3b82f6', bg: '#eff6ff' };
+  if (!highMb &&  highNb) return { label: 'Opportunity Gap',           color: '#3b82f6', bg: '#eff6ff' };
+  return                         { label: 'Evaluation Candidates',     color: '#6b7280', bg: '#f3f4f6' };
 }
 
 // Chart color palette (fallback when not using tier colors)

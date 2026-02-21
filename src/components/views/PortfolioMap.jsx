@@ -58,7 +58,7 @@ function CustomTooltip({ active, payload }) {
         <Row label="Coverage"     value={formatPercent(d.coverage, 0)} />
         <Row label="MB GP$"       value={formatCurrency(d.mbGpDollars, true)} />
         <Row label="MB GP%"       value={formatPercent(d.mbGpMargin)} />
-        <Row label="MMS GP$"      value={formatCurrency(d.mmsGpDollars, true)} />
+        <Row label="NB GP$"       value={formatCurrency(d.mmsGpDollars, true)} />
       </div>
     </div>
   );

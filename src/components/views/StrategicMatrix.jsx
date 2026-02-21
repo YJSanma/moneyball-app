@@ -47,10 +47,10 @@ function CustomTooltip({ active, payload }) {
       </span>
       <div className="space-y-1 text-gray-600 text-xs">
         <Row label="MB Outpace NB Growth"  value={formatPercent(d.mbOutpaceMms, 1)} />
-        <Row label="MMS Outpace Market %"  value={formatPercent(d.mmsOutpaceMarket, 1)} />
+        <Row label="NB outpace Non-PL market" value={formatPercent(d.mmsOutpaceMarket, 1)} />
         <Row label="MB GP$"               value={formatCurrency(d.mbGpDollars, true)} />
         <Row label="MB GP%"               value={formatPercent(d.mbGpMargin)} />
-        <Row label="MMS GP$"              value={formatCurrency(d.mmsGpDollars, true)} />
+        <Row label="NB GP$"               value={formatCurrency(d.mmsGpDollars, true)} />
       </div>
     </div>
   );

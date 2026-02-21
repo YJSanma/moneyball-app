@@ -30,19 +30,19 @@ function buildColOptions(data) {
   return [
     { key: 'mbGpDollars',      label: 'MB GP$',                isRaw: false },
     { key: 'mbGpMargin',       label: 'MB GP%',                isRaw: false },
-    { key: 'mmsGpDollars',     label: 'MMS GP$',               isRaw: false },
-    { key: 'mmsGpMargin',      label: 'MMS GP%',               isRaw: false },
+    { key: 'mmsGpDollars',     label: 'NB GP$',                isRaw: false },
+    { key: 'mmsGpMargin',      label: 'NB GP%',                isRaw: false },
     { key: 'penetration',      label: 'Penetration %',         isRaw: false },
     { key: 'coverage',         label: 'Coverage %',            isRaw: false },
     { key: 'totalMarket',      label: 'Total Market $m',       isRaw: false },
     { key: 'marketGrowth',     label: 'Total Market Growth %', isRaw: false },
     { key: 'marketShare',      label: 'MMS Market Share %',    isRaw: false },
-    { key: 'mmsGrowth',        label: 'MMS Growth %',          isRaw: false },
+    { key: 'mmsGrowth',        label: 'NB Growth %',           isRaw: false },
     { key: 'revenue',          label: 'MB Sales $',            isRaw: false },
     { key: 'mbGrowth',         label: 'MB Growth %',           isRaw: false },
-    { key: 'mbOutpaceMms',     label: 'MB outpace MMS %',      isRaw: false },
-    { key: 'mmsOutpaceMarket', label: 'MMS outpace Market %',  isRaw: false },
-    { key: 'mbVsMmsGp',        label: 'MB GP > MMS GP %',      isRaw: false },
+    { key: 'mbOutpaceMms',     label: 'MB outpace NB %',       isRaw: false },
+    { key: 'mmsOutpaceMarket', label: 'NB outpace Non-PL market', isRaw: false },
+    { key: 'mbVsMmsGp',        label: 'MB GP higher than NB GP %', isRaw: false },
   ];
 }
 
