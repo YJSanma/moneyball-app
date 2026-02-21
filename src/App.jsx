@@ -78,9 +78,9 @@ export default function App() {
   // Card 4: penetration = total MB Sales$ / total MMS Sales$ across all categories
   const portfolioPenetration = totalMmsSales > 0 ? (totalMbSales / totalMmsSales * 100) : null;
 
-  // Coverage: mean across all categories
-  const withCov    = scoredData?.filter((d) => d.coverage != null) ?? [];
-  const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.coverage, 0) / withCov.length : null;
+  // Coverage KPI: mean of the penetration field (account penetration = what user calls "coverage")
+  const withCov    = scoredData?.filter((d) => d.penetration != null) ?? [];
+  const avgCoverage = withCov.length ? withCov.reduce((s, d) => s + d.penetration, 0) / withCov.length : null;
 
   const ActiveComponent = VIEWS.find((v) => v.id === activeView)?.component;
 
