@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import {
   formatCurrency, formatPercent, getTier,
-  getPenCovQuadrant, getGrowthQuadrant, getQuadrant,
+  getPenCovQuadrant, getGrowthQuadrant,
 } from '../../utils/formatters';
 
 // Normalize a value to 0–100 within the portfolio's min/max range
@@ -158,9 +158,6 @@ export default function CategoryDetail({ category, allData, onBack }) {
     ? getPenCovQuadrant(category.penetration, category.coverage) : null;
   const f2q = category.mbOutpaceMms != null && category.mmsOutpaceMarket != null
     ? getGrowthQuadrant(category.mbOutpaceMms, category.mmsOutpaceMarket) : null;
-  const bcgq = category.marketGrowth != null && category.marketShare != null
-    ? getQuadrant(category.marketGrowth, category.marketShare) : null;
-
   // Radar chart — 6 dimensions normalised within the portfolio
   const radarDimensions = [
     { key: 'mbGpMargin',   label: 'MB Margin'   },
@@ -498,11 +495,6 @@ export default function CategoryDetail({ category, allData, onBack }) {
                 bottomLeft={{  label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6' }}
                 bottomRight={{ label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff' }}
               />
-
-              <div className="border-t border-gray-100" />
-
-              {/* BCG text badge */}
-              <QuadrantBadge quadrant={bcgq} label="BCG — Market Growth × Market Share" />
 
             </div>
           </Section>

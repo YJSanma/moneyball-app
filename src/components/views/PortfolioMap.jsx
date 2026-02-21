@@ -74,7 +74,7 @@ function Row({ label, value }) {
 }
 
 export default function PortfolioMap({ data }) {
-  const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4]));
+  const [activeTiers, setActiveTiers] = useState(new Set([1, 2, 3, 4, 5]));
   const [search, setSearch] = useState('');
 
   const toggleTier = (tier) => {
@@ -165,7 +165,7 @@ export default function PortfolioMap({ data }) {
 
       {/* Tier filter + search */}
       <div className="flex flex-wrap items-center gap-2">
-        {[1, 2, 3, 4].map((tier) => {
+        {[1, 2, 3, 4, 5].map((tier) => {
           const t      = getTier(tier);
           const active = activeTiers.has(tier);
           return (
