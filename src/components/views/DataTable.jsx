@@ -462,7 +462,7 @@ export default function DataTable({ data, weights, setWeights, onCategoryClick }
           <div ref={phantomRef} style={{ height: 1, minWidth: '100%' }} />
         </div>
 
-        <div ref={tableWrapRef} className="overflow-x-auto">
+        <div ref={tableWrapRef} className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '70vh' }}>
           <table className="text-sm border-collapse" style={{ minWidth: 'max-content' }}>
             <thead>
               <tr>
