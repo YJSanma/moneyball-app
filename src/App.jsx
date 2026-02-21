@@ -131,6 +131,24 @@ export default function App() {
   // NB GP% = sum(NB GP$) / sum(NB Sales$) — shows — until NB Sales column uploaded
   const portfolioNbGpPct = totalNbSales > 0 ? (totalNbGp / totalNbSales * 100) : null;
 
+  // Buy-side GP%: average of the "Buy Side %" column from _raw (display only, not in scoring)
+  // Mirrors the same average the DataTable footer shows for that column.
+  const buySideGpPct = useMemo(() => {
+    if (!scoredData?.length || !scoredData[0]?._raw) return null;
+    const key = Object.keys(scoredData[0]._raw).find(k => {
+      const kl = k.toLowerCase();
+      return kl.includes('buy') && kl.includes('side') && kl.includes('%');
+    });
+    if (!key) return null;
+    const vals = scoredData
+      .map(r => { const v = r._raw?.[key]; return v != null && v !== '' ? Number(v) : NaN; })
+      .filter(n => !isNaN(n));
+    if (!vals.length) return null;
+    const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+    // Normalize: decimal fraction (e.g. 0.173) → percentage (17.3)
+    return Math.abs(avg) <= 1.5 ? avg * 100 : avg;
+  }, [scoredData]);
+
   // Penetration = MB Sales / (MB + NB Sales) = McKesson brand share of MMS sales
   const mmsTotalSales = totalMbSales + totalNbSales;
   const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
@@ -342,12 +360,13 @@ export default function App() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <KPICard label="Total MB Sales" value={totalMbSales > 0 ? formatCurrency(totalMbSales, true) : '—'}
                 sub={`${data.length} categories`} color="#0066CC" bg="#e6f0ff" />
-              <KPICard label="MB GP$" value={formatCurrency(totalMbGP, true)}
+              <KPICard label="Total MB GP$" value={formatCurrency(totalMbGP, true)}
                 sub="McKesson Brands GP"   color="#059669" bg="#ecfdf5" />
-              <DualKPICard
-                label="GP Margin"
-                label1="MB GP%" val1={portfolioMbGpPct != null ? formatPercent(portfolioMbGpPct) : '—'}
-                label2="NB GP%" val2={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
+              <TripleKPICard
+                label="Total GP Margin"
+                label1="MB sell-side GP%" val1={portfolioMbGpPct != null ? formatPercent(portfolioMbGpPct) : '—'}
+                label2="NB GP%"           val2={portfolioNbGpPct  != null ? formatPercent(portfolioNbGpPct)  : '—'}
+                label3="MB buy-side GP%"  val3={buySideGpPct      != null ? formatPercent(buySideGpPct)      : '—'}
                 color="#7c3aed" bg="#f5f3ff"
               />
               <ReachKPICard
@@ -433,6 +452,29 @@ function KPICard({ label, value, sub, color, bg }) {
       <p className="text-xs font-medium mb-1" style={{ color: color + 'aa' }}>{label}</p>
       <p className="text-xl font-bold" style={{ color }}>{value}</p>
       {sub && <p className="text-xs mt-0.5" style={{ color: color + '88' }}>{sub}</p>}
+    </div>
+  );
+}
+
+// Three side-by-side metrics in one card
+function TripleKPICard({ label, val1, label1, val2, label2, val3, label3, color, bg }) {
+  return (
+    <div className="rounded-xl border p-4" style={{ backgroundColor: bg, borderColor: color + '30' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: color + 'aa' }}>{label}</p>
+      <div className="flex gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] mb-0.5 truncate" style={{ color: color + '88' }}>{label1}</p>
+          <p className="text-base font-bold" style={{ color }}>{val1}</p>
+        </div>
+        <div className="flex-1 min-w-0 border-l pl-2" style={{ borderColor: color + '30' }}>
+          <p className="text-[9px] mb-0.5 truncate" style={{ color: color + '88' }}>{label2}</p>
+          <p className="text-base font-bold" style={{ color }}>{val2}</p>
+        </div>
+        <div className="flex-1 min-w-0 border-l pl-2" style={{ borderColor: color + '30' }}>
+          <p className="text-[9px] mb-0.5 truncate" style={{ color: color + '88' }}>{label3}</p>
+          <p className="text-base font-bold" style={{ color }}>{val3}</p>
+        </div>
+      </div>
     </div>
   );
 }
