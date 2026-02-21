@@ -79,11 +79,11 @@ export default function App() {
   const portfolioPenetration = (mmsTotalSales > 0 && totalNbSales > 0)
     ? (totalMbSales / mmsTotalSales * 100) : null;
 
-  // Penetration — Tier 1–4 categories only (exclude Tier 5)
-  const t14 = scoredData?.filter(d => d.tier >= 1 && d.tier <= 4) ?? [];
-  const penT14Mb = t14.reduce((s, d) => s + (d.revenue || 0), 0);
-  const penT14Nb = t14.reduce((s, d) => s + (d.nbSales || 0), 0);
-  const penTier14 = (penT14Mb + penT14Nb) > 0 ? (penT14Mb / (penT14Mb + penT14Nb) * 100) : null;
+  // Penetration — categories where individual penetration is already > 0%
+  const aboveZero = scoredData?.filter(d => d.penetration != null && d.penetration > 0) ?? [];
+  const penAZ_Mb = aboveZero.reduce((s, d) => s + (d.revenue || 0), 0);
+  const penAZ_Nb = aboveZero.reduce((s, d) => s + (d.nbSales || 0), 0);
+  const penTier14 = (penAZ_Mb + penAZ_Nb) > 0 ? (penAZ_Mb / (penAZ_Mb + penAZ_Nb) * 100) : null;
 
   // Penetration — categories where individual penetration is already > 20%
   const above20 = scoredData?.filter(d => d.penetration != null && d.penetration > 20) ?? [];
@@ -416,7 +416,7 @@ function ReachKPICard({ coverage, penAll, penT14, penAbove20, color, bg }) {
               <span className="font-bold" style={{ color }}>{fmt(penAll)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span style={{ color: color + '99' }}>Tier 1–4</span>
+              <span style={{ color: color + '99' }}>&gt;0% pen</span>
               <span className="font-bold" style={{ color }}>{fmt(penT14)}</span>
             </div>
             <div className="flex justify-between text-xs">
