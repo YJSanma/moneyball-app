@@ -252,30 +252,19 @@ export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 2
           )}
         </div>
 
+        <div className="relative">
         <ResponsiveContainer width="100%" height={520}>
           <ScatterChart margin={C_MARGIN}>
 
             {/* Quadrant shaded backgrounds — rendered first so dots appear on top */}
             <ReferenceArea x1={0} x2={penThreshold} y1={covThreshold} y2={100}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="Reassessment" position="insideTopLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
             <ReferenceArea x1={penThreshold} x2={100} y1={covThreshold} y2={100}
-              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-              <Label value="Assortment Leader" position="insideTopRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none" />
             <ReferenceArea x1={0} x2={penThreshold} y1={0} y2={covThreshold}
-              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none">
-              <Label value="Untapped Potential" position="insideBottomLeft"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+              fill={LIGHT_BLUE} fillOpacity={0.3} stroke="none" />
             <ReferenceArea x1={penThreshold} x2={100} y1={0} y2={covThreshold}
-              fill={DARK_BLUE} fillOpacity={0.1} stroke="none">
-              <Label value="Selective Winner" position="insideBottomRight"
-                style={{ fontSize: 11, fontWeight: 700, fill: '#1e3a8a' }} />
-            </ReferenceArea>
+              fill={DARK_BLUE} fillOpacity={0.1} stroke="none" />
 
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
 
@@ -331,6 +320,18 @@ export default function PortfolioMap({ data, penThreshold = 25, covThreshold = 2
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
+
+        {/* Corner quadrant labels — CSS-positioned inside plot area only */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ paddingTop: 20, paddingBottom: 72, paddingLeft: 77, paddingRight: 52 }}>
+          <div className="relative w-full h-full text-xs font-bold">
+            <span className="absolute top-1 left-1 text-blue-900">Reassessment</span>
+            <span className="absolute top-1 right-1 text-right text-blue-900">Assortment Leader</span>
+            <span className="absolute bottom-1 left-1 text-gray-600">Untapped Potential</span>
+            <span className="absolute bottom-1 right-1 text-right text-blue-900">Selective Winner</span>
+          </div>
+        </div>
+        </div>
 
         {/* Category legend */}
         <div className="mt-4 border-t border-gray-100 pt-4">

@@ -290,9 +290,9 @@ export default function StrategicMatrix({ data }) {
             </ScatterChart>
           </ResponsiveContainer>
 
-          {/* Corner quadrant labels — CSS-positioned */}
+          {/* Corner quadrant labels — CSS-positioned inside plot area only */}
           <div className="absolute inset-0 pointer-events-none"
-            style={{ paddingTop: 20, paddingBottom: 42, paddingLeft: 70, paddingRight: 52 }}>
+            style={{ paddingTop: 20, paddingBottom: 72, paddingLeft: 82, paddingRight: 52 }}>
             <div className="relative w-full h-full text-xs font-bold">
               <span className="absolute top-1 left-1 text-blue-900">Opportunity Gap</span>
               <span className="absolute top-1 right-1 text-right text-blue-900">Strategy Star</span>
