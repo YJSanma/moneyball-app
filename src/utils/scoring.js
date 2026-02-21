@@ -88,23 +88,32 @@ export function computeScoring(allData, weights) {
     return { ...row, _score: usedW > 0 ? weightedSum / usedW : null };
   });
 
-  // Overall rank and quartile tier assignment
+  // Overall rank assignment — sorted by score (lower = better)
   const withScores = scored.filter(r => r._score != null).sort((a, b) => a._score - b._score);
-  const n = withScores.length;
   const rankMap = new Map();
   const tierMap = new Map();
+
+  // Fixed bucket sizes: top 15 → Tier 1, next 15 → Tier 2, next 15 → Tier 3
+  // After that: has MB Sales (revenue > 0) → Tier 4, no MB Sales → Tier 5
   withScores.forEach((r, i) => {
     rankMap.set(r.id, i + 1);
-    const tier =
-      i < Math.ceil(n * 0.25) ? 1 :
-      i < Math.ceil(n * 0.50) ? 2 :
-      i < Math.ceil(n * 0.75) ? 3 : 4;
+    let tier;
+    if      (i < 15) tier = 1;
+    else if (i < 30) tier = 2;
+    else if (i < 45) tier = 3;
+    else             tier = (r.revenue != null && r.revenue > 0) ? 4 : 5;
     tierMap.set(r.id, tier);
   });
 
-  return scored.map(row => ({
-    ...row,
-    _rank: rankMap.get(row.id) ?? null,
-    tier:  tierMap.get(row.id) ?? row.tier,
-  }));
+  // Rows with no score still get tier 4/5 based on MB Sales
+  return scored.map(row => {
+    if (!tierMap.has(row.id)) {
+      tierMap.set(row.id, (row.revenue != null && row.revenue > 0) ? 4 : 5);
+    }
+    return {
+      ...row,
+      _rank: rankMap.get(row.id) ?? null,
+      tier:  tierMap.get(row.id),
+    };
+  });
 }

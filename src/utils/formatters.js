@@ -27,7 +27,7 @@ export function formatNumber(value, compact = false) {
   return new Intl.NumberFormat('en-US').format(Math.round(value));
 }
 
-// --- Tier config (Tier 1 = highest priority, Tier 4 = lowest) ---
+// --- Tier config (Tier 1 = highest priority, Tier 5 = lowest) ---
 // McKesson brand blue anchors Tier 1
 
 export const TIER_CONFIG = {
@@ -35,10 +35,11 @@ export const TIER_CONFIG = {
   2: { label: 'Tier 2', color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', desc: 'Grow Selectively'        },
   3: { label: 'Tier 3', color: '#d97706', bg: '#fffbeb', border: '#fcd34d', desc: 'Maintain'                },
   4: { label: 'Tier 4', color: '#6b7280', bg: '#f9fafb', border: '#d1d5db', desc: 'Monitor / Rationalize'   },
+  5: { label: 'Tier 5', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5', desc: 'No MB Sales'             },
 };
 
 export function getTier(tier) {
-  return TIER_CONFIG[tier] ?? TIER_CONFIG[4];
+  return TIER_CONFIG[tier] ?? TIER_CONFIG[5];
 }
 
 // --- Strategic Matrix quadrant helpers (BCG-style) ---

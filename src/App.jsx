@@ -263,7 +263,7 @@ export default function App() {
 
             {/* Tier breakdown pills — reflect computed tiers from scoring */}
             <div className="flex flex-wrap gap-2 mb-5">
-              {[1, 2, 3, 4].map((tier) => {
+              {[1, 2, 3, 4, 5].map((tier) => {
                 const t     = getTier(tier);
                 const count = scoredData.filter((d) => d.tier === tier).length;
                 return (

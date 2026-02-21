@@ -124,9 +124,9 @@ export function rowsToRecords(rows) {
         record.mbGpMargin = (record.mbGpDollars / record.revenue) * 100;
       }
 
-      // Snap tier to 1–4; default to 3 if missing
+      // Snap tier to 1–5; default to 3 if missing (scoring will override this)
       if (record.tier != null) {
-        record.tier = Math.min(4, Math.max(1, Math.round(record.tier)));
+        record.tier = Math.min(5, Math.max(1, Math.round(record.tier)));
       } else {
         record.tier = 3;
       }
