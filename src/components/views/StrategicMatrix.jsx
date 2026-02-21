@@ -1,5 +1,5 @@
 // Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
-// Axes: MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y)
+// Axes: MB Outpace NB Growth (X) vs NB Outpace Non-PL Market (Y)
 // Quadrant thresholds: x=0%, y=0%
 
 import {
@@ -11,9 +11,9 @@ import { Search } from 'lucide-react';
 import { formatCurrency, formatPercent, getTier, getGrowthQuadrant } from '../../utils/formatters';
 
 const QUADRANT_LABELS = [
-  { label: 'Strategy Star',            color: '#1d4ed8', bg: '#dbeafe', desc: 'MB & MMS both outpacing — strongest position' },
-  { label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff', desc: 'MMS outpacing market but MB lagging — close the gap' },
-  { label: 'McKesson Brands Champions',color: '#3b82f6', bg: '#eff6ff', desc: 'MB outpacing NB but MMS behind market — defend share' },
+  { label: 'Strategy Star',            color: '#1d4ed8', bg: '#dbeafe', desc: 'MB & NB both outpacing — strongest position' },
+  { label: 'Opportunity Gap',          color: '#3b82f6', bg: '#eff6ff', desc: 'NB outpacing market but MB lagging — close the gap' },
+  { label: 'McKesson Brands Champions',color: '#3b82f6', bg: '#eff6ff', desc: 'MB outpacing NB but NB behind market — defend share' },
   { label: 'Evaluation Candidates',    color: '#6b7280', bg: '#f3f4f6', desc: 'Both metrics lagging — review and reassess' },
 ];
 
@@ -159,7 +159,7 @@ export default function StrategicMatrix({ data }) {
           Framework 2: Mapping Sales Growth Performance among MB, NB and the Market
         </h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          MB Outpace NB Growth (X) vs MMS Outpace Market Growth % (Y) — bubble size = MB GP$, color = tier
+          MB Outpace NB Growth (X) vs NB Outpace Non-PL Market (Y) — bubble size = MB GP$, color = tier
         </p>
       </div>
 
@@ -259,7 +259,7 @@ export default function StrategicMatrix({ data }) {
               <YAxis type="number" dataKey="_yPlot" width={60} allowDataOverflow
                 domain={activeDomain.y} ticks={activeYTicks}
                 tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: '#64748b' }}>
-                <Label value="MMS Outpace Market Growth %" angle={-90} position="insideLeft" offset={10}
+                <Label value="NB Outpace Non-PL Market" angle={-90} position="insideLeft" offset={10}
                   style={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} />
               </YAxis>
 
